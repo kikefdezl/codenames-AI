@@ -3,7 +3,7 @@ use std::fs::File;
 use std::path::Path;
 use std::io::{ self, BufRead };
 
-const WORD_LIST_FILE: &str = "./src/wordlist-eng.txt";
+const WORD_LIST_FILE: &str = "./data/wordlist-eng.txt";
 const BOARD_SIZE: usize = 5;
 
 fn get_word_board() ->  Vec<Vec<String>> {
