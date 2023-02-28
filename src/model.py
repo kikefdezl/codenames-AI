@@ -4,7 +4,6 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator
 from tqdm import tqdm
 
 # Load pre-trained model and tokenizer
@@ -62,11 +61,6 @@ def plot_similarity_matrix(matrix: np.ndarray, wordlist: list[str]):
     fig, ax = plt.subplots()
 
     ax.matshow(matrix, cmap=plt.cm.Oranges)
-    # ax.yaxis.set_major_locator(MultipleLocator(1))
-    # ax.xaxis.set_major_locator(MultipleLocator(1))
-    # ax.set_xticklabels(wordlist)
-    # ax.set_yticklabels(wordlist)
-    plt.xticks(range(len(wordlist)))
     plt.yticks(range(len(wordlist)))
     ax.set_xticklabels(wordlist, rotation=90)
     ax.set_yticklabels(wordlist)
