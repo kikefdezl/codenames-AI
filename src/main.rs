@@ -15,7 +15,13 @@ fn get_word_board() ->  Vec<Vec<String>> {
     let file = File::open(&path).expect("Failed to open file");
     let lines: Vec<String> = io::BufReader::new(file)
         .lines()
-        .map(|line| line.unwrap())
+        .map(|line| {
+            if let Ok(l) = line {
+                l
+            } else {
+                panic!("Failed to read the line from file");
+            }
+        })
         .collect();
 
     // Shuffle the vector
