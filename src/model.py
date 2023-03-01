@@ -62,6 +62,7 @@ def plot_similarity_matrix(matrix: np.ndarray, wordlist: list[str]):
 
     ax.matshow(matrix, cmap=plt.cm.Oranges)
     plt.yticks(range(len(wordlist)))
+    plt.xticks(range(len(wordlist)))
     ax.set_xticklabels(wordlist, rotation=90)
     ax.set_yticklabels(wordlist)
 

@@ -1,10 +1,13 @@
 use rand::seq::SliceRandom;
+use rand::Rng;
 use std::fs::File;
 use std::path::Path;
 use std::io::{ self, BufRead };
+use colored::*;
 
 const WORD_LIST_FILE: &str = "./data/wordlist-eng.txt";
 const BOARD_SIZE: usize = 5;
+const NUM_WORDS_TO_GUESS: usize = 9;
 
 fn get_word_board() ->  Vec<Vec<String>> {
     // Open the file
@@ -28,6 +31,24 @@ fn get_word_board() ->  Vec<Vec<String>> {
 }
 
 
+fn get_word_mask() -> Vec<Vec<bool>> {
+    let mut count = 0;
+    let mut mask = vec![vec![false; BOARD_SIZE]; BOARD_SIZE];
+    loop {
+        let col = rand::thread_rng().gen_range(0..BOARD_SIZE);
+        let row = rand::thread_rng().gen_range(0..BOARD_SIZE);
+        if mask[col][row] == false {
+            mask[col][row] = true;
+            count = count + 1;
+            if count == NUM_WORDS_TO_GUESS {
+                break;
+            }
+        }
+    }
+    return mask;
+}
+
+
 fn get_max_word_length(board: &Vec<Vec<String>>) -> usize {
     let mut max = 0;
     for row in board {
@@ -42,12 +63,18 @@ fn get_max_word_length(board: &Vec<Vec<String>>) -> usize {
 }
 
 
-fn print_board(board: &Vec<Vec<String>>) {
-    let width = get_max_word_length(&board) + 2;
+fn print_board(board: &Vec<Vec<String>>, mask: &Vec<Vec<bool>>) {
+    let print_width = get_max_word_length(&board) + 2;
 
-    for row in board {
-        for word in row {
-            print!("{word:>width$}");
+    for row in 0..BOARD_SIZE {
+        for col in 0..BOARD_SIZE {
+            if mask[col][row] {
+                let colored_word = board[row][col].red();
+                print!("{:>print_width$}", colored_word); 
+            }
+            else {
+                print!("{:>print_width$}", board[row][col]);
+            }
         }
         println!("");
     }
@@ -59,6 +86,7 @@ fn main() {
     println!("");
 
     let word_board: Vec<Vec<String>> = get_word_board();
+    let word_mask: Vec<Vec<bool>> = get_word_mask();
 
-    print_board(&word_board);
+    print_board(&word_board, &word_mask);
 }
