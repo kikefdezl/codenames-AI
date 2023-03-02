@@ -65,12 +65,13 @@ fn get_max_word_length(board: &Vec<Vec<String>>) -> usize {
 
 fn print_board(board: &Vec<Vec<String>>, mask: &Vec<Vec<bool>>) {
     let print_width = get_max_word_length(&board) + 2;
-
+    let mut your_words: Vec<String> = Vec::new();
     for row in 0..BOARD_SIZE {
         for col in 0..BOARD_SIZE {
             if mask[col][row] {
                 let colored_word = board[row][col].red();
                 print!("{:>print_width$}", colored_word); 
+                your_words.push(board[row][col].to_string());
             }
             else {
                 print!("{:>print_width$}", board[row][col]);
@@ -78,6 +79,8 @@ fn print_board(board: &Vec<Vec<String>>, mask: &Vec<Vec<bool>>) {
         }
         println!("");
     }
+    let joined = your_words.join(", ");
+    println!("Your words: {joined}");
 }
 
 
