@@ -10,16 +10,16 @@ const WORD_LIST_FILE: &str = "./data/wordlist-eng.txt";
 const BOARD_SIZE: usize = 5;
 const NUM_WORDS_TO_GUESS: usize = 9;
 
-fn compute_word_similarity(word_a: &str, word_b: &str) -> PyResult<()> {
+fn compute_word_similarity(word_a: &str, word_b: &str) -> PyResult<f32> {
     pyo3::prepare_freethreaded_python();
     Python::with_gil(|py| {
         let ai_tools = PyModule::import(py, "ai_tools")?;
         let result: f32 = ai_tools
             .getattr("compute_similarity")?
-            .call1((vec![word_a, word_b],))?
+            .call1((word_a, word_b,))?
             .extract()?;
         println!("{result}");
-        Ok(())
+        Ok(result)
     })
 }
 
@@ -89,7 +89,7 @@ fn print_board(board: &Vec<Vec<String>>, mask: &Vec<Vec<bool>>) {
     for row in 0..BOARD_SIZE {
         for col in 0..BOARD_SIZE {
             if mask[col][row] {
-                let colored_word = board[row][col].red();
+                let colored_word = board[row][col].blue();
                 print!("{:>print_width$}", colored_word); 
                 your_words.push(board[row][col].to_string());
             }
@@ -112,5 +112,5 @@ fn main() {
     let word_mask: Vec<Vec<bool>> = get_word_mask();
 
     print_board(&word_board, &word_mask);
-    compute_word_similarity("blue", "red");
+    compute_word_similarity("tomato", "red").expect("Couldn't get result from AI model");
 }
