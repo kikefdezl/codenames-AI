@@ -3,7 +3,6 @@ from __future__ import annotations
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import numpy as np
 import torch
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 # Load pre-trained model and tokenizer
@@ -12,13 +11,9 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSequenceClassification.from_pretrained(model_name)
 
 
-wordlist = ['knife', 'government', 'spider', 'mantis', 'chicken',
-            'laptop', 'string', 'sharp', 'guitar', 'cable',
-            'electric', 'jellyfish', 'president']
-
-
 # Define function to compute semantic similarity
 def compute_similarity(word1, word2):
+    print(f"Words: {word1} & {word2}")
     # Encode the two words as input to the model
     inputs = tokenizer.encode_plus(
         word1,
@@ -65,10 +60,3 @@ def plot_similarity_matrix(matrix: np.ndarray, wordlist: list[str]):
     plt.xticks(range(len(wordlist)))
     ax.set_xticklabels(wordlist, rotation=90)
     ax.set_yticklabels(wordlist)
-
-
-similarity_matrix = get_similarity_matrix(wordlist)
-plot_similarity_matrix(similarity_matrix, wordlist)
-
-plt.show()
-
