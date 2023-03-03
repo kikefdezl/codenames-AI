@@ -4,10 +4,24 @@ use std::fs::File;
 use std::path::Path;
 use std::io::{ self, BufRead };
 use colored::*;
+use pyo3::prelude::*;
 
 const WORD_LIST_FILE: &str = "./data/wordlist-eng.txt";
 const BOARD_SIZE: usize = 5;
 const NUM_WORDS_TO_GUESS: usize = 9;
+
+fn compute_word_similarity(word_a: &str, word_b: &str) -> PyResult<()> {
+    pyo3::prepare_freethreaded_python();
+    Python::with_gil(|py| {
+        let ai_tools = PyModule::import(py, "ai_tools")?;
+        let result: f32 = ai_tools
+            .getattr("compute_similarity")?
+            .call1((vec![word_a, word_b],))?
+            .extract()?;
+        println!("{result}");
+        Ok(())
+    })
+}
 
 fn get_word_board() ->  Vec<Vec<String>> {
     // Open the file
@@ -98,4 +112,5 @@ fn main() {
     let word_mask: Vec<Vec<bool>> = get_word_mask();
 
     print_board(&word_board, &word_mask);
+    compute_word_similarity("blue", "red");
 }
