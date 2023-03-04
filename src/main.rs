@@ -104,10 +104,27 @@ fn print_board(board: &Vec<Vec<String>>, mask: &Vec<Vec<bool>>) {
 }
 
 
+fn game_selection_menu() -> u8 {
+    let mut gametype: u8 = 0;
+    let choice_range = (1, 1);
+    while gametype < choice_range.0 || choice_range.1 < gametype  { 
+        println!("Select what you would like to play as [{}-{}]",
+                 choice_range.0.to_string(), choice_range.1.to_string());
+        println!("1. Spymaster");
+        let mut choice = String::new();
+        io::stdin().read_line(&mut choice).expect("Failed to read choice."); 
+        gametype = choice.trim().parse().expect("Please type a number.");
+    }
+    return gametype;
+}
+
+
 fn main() {
     println!("{:=^70}", "Welcome to codenames!");
     println!("");
 
+    let gametype = game_selection_menu();
+    println!("Selected game: {gametype}");
     let word_board: Vec<Vec<String>> = get_word_board();
     let word_mask: Vec<Vec<bool>> = get_word_mask();
 
