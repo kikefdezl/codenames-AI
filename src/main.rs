@@ -3,12 +3,19 @@ use rand::Rng;
 use std::fs::File;
 use std::path::Path;
 use std::io::{ self, BufRead };
-use colored::*;
 use pyo3::prelude::*;
+use colored::*;
 
 const WORD_LIST_FILE: &str = "./data/wordlist-eng.txt";
 const BOARD_SIZE: usize = 5;
 const NUM_WORDS_TO_GUESS: usize = 9;
+
+
+struct Board {
+    words: Vec<Vec<String>>,
+    team_mask: Vec<Vec<bool>>,
+    guessed_mask: Vec<Vec<bool>>,
+}
 
 fn compute_word_similarity(word_a: &str, word_b: &str) -> PyResult<f32> {
     pyo3::prepare_freethreaded_python();
@@ -51,7 +58,7 @@ fn get_word_board() ->  Vec<Vec<String>> {
 }
 
 
-fn get_word_mask() -> Vec<Vec<bool>> {
+fn get_team_mask() -> Vec<Vec<bool>> {
     let mut count = 0;
     let mut mask = vec![vec![false; BOARD_SIZE]; BOARD_SIZE];
     loop {
@@ -83,18 +90,18 @@ fn get_max_word_length(board: &Vec<Vec<String>>) -> usize {
 }
 
 
-fn print_board(board: &Vec<Vec<String>>, mask: &Vec<Vec<bool>>) {
-    let print_width = get_max_word_length(&board) + 2;
+fn print_board(board: &Board) {
+    let print_width = get_max_word_length(&board.words) + 2;
     let mut your_words: Vec<String> = Vec::new();
     for row in 0..BOARD_SIZE {
         for col in 0..BOARD_SIZE {
-            if mask[col][row] {
-                let colored_word = board[row][col].blue();
+            if board.team_mask[col][row] {
+                let colored_word = board.words[row][col].blue();
                 print!("{:>print_width$}", colored_word); 
-                your_words.push(board[row][col].to_string());
+                your_words.push(board.words[row][col].to_string());
             }
             else {
-                print!("{:>print_width$}", board[row][col]);
+                print!("{:>print_width$}", board.words[row][col]);
             }
         }
         println!("");
@@ -106,11 +113,12 @@ fn print_board(board: &Vec<Vec<String>>, mask: &Vec<Vec<bool>>) {
 
 fn game_selection_menu() -> u8 {
     let mut gametype: u8 = 0;
-    let choice_range = (1, 1);
+    let choice_range = (1, 2);
     while gametype < choice_range.0 || choice_range.1 < gametype  { 
         println!("Select what you would like to play as [{}-{}]",
                  choice_range.0.to_string(), choice_range.1.to_string());
         println!("1. Spymaster");
+        println!("2. Exit");
         let mut choice = String::new();
         io::stdin().read_line(&mut choice).expect("Failed to read choice."); 
         gametype = choice.trim().parse().expect("Please type a number.");
@@ -119,15 +127,29 @@ fn game_selection_menu() -> u8 {
 }
 
 
+fn play_spymaster_game() {
+    let mut board = Board {
+        words: get_word_board(),
+        team_mask: get_team_mask(),
+        guessed_mask: vec![vec![false; BOARD_SIZE]; BOARD_SIZE]
+    };
+    print_board(&board);
+    compute_word_similarity("tomato", "red").expect("Couldn't get result from AI model");
+}
+
+
 fn main() {
     println!("{:=^70}", "Welcome to codenames!");
     println!("");
 
-    let gametype = game_selection_menu();
-    println!("Selected game: {gametype}");
-    let word_board: Vec<Vec<String>> = get_word_board();
-    let word_mask: Vec<Vec<bool>> = get_word_mask();
-
-    print_board(&word_board, &word_mask);
-    compute_word_similarity("tomato", "red").expect("Couldn't get result from AI model");
+    loop {
+        let gametype = game_selection_menu();
+        if gametype == 1 {
+            play_spymaster_game()
+        }
+        if gametype == 2 {
+            break;
+        }
+    }
+    println!("Exiting.");
 }
