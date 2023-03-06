@@ -1,9 +1,10 @@
-use rand::seq::SliceRandom;
 use rand::Rng;
+use rand::prelude::SliceRandom;
 use std::fs::File;
 use std::path::Path;
 use std::io::{ self, BufRead };
 use pyo3::prelude::*;
+use regex::Regex;
 use colored::*;
 
 const WORD_LIST_FILE: &str = "./data/wordlist-eng.txt";
@@ -127,13 +128,35 @@ fn game_selection_menu() -> u8 {
 }
 
 
+fn get_remaining_words(board: &Board) -> Vec<String> {
+    let mut remaining_words = Vec::new();
+    for row in 0..BOARD_SIZE {
+        for col in 0..BOARD_SIZE {
+            if !board.guessed_mask[row][col] {
+                remaining_words.push(board.words[row][col].to_string());
+            }
+        }
+    }
+    return remaining_words;
+}
+
+
 fn play_spymaster_game() {
     let mut board = Board {
         words: get_word_board(),
         team_mask: get_team_mask(),
         guessed_mask: vec![vec![false; BOARD_SIZE]; BOARD_SIZE]
     };
+
+    let clue_re = Regex::new(r"\w \d").unwrap();
+    let mut choice = String::new();
     print_board(&board);
+    while !clue_re.is_match(&choice) {
+        println!("Provide a clue: ");
+        io::stdin().read_line(&mut choice).expect("Failed to read choice."); 
+    }
+    let remaining_words = get_remaining_words(&board);
+    println!("{:?}", remaining_words);
     compute_word_similarity("tomato", "red").expect("Couldn't get result from AI model");
 }
 
