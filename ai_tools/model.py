@@ -12,7 +12,7 @@ model = AutoModelForSequenceClassification.from_pretrained(model_name)
 
 
 # Define function to compute semantic similarity
-def compute_similarity(word1, word2):
+def compute_similarity(main_word, : list[float]):
     print(f"Words: {word1} & {word2}")
     # Encode the two words as input to the model
     inputs = tokenizer.encode_plus(

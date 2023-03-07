@@ -18,15 +18,15 @@ struct Board {
     guessed_mask: Vec<Vec<bool>>,
 }
 
-fn compute_word_similarity(word_a: &str, word_b: &str) -> PyResult<f32> {
+fn compute_word_similarity(words: Vec<String>) -> PyResult<Vec<f32>> {
     pyo3::prepare_freethreaded_python();
     Python::with_gil(|py| {
         let ai_tools = PyModule::import(py, "ai_tools")?;
-        let result: f32 = ai_tools
+        let result: Vec<f32> = ai_tools
             .getattr("compute_similarity")?
-            .call1((word_a, word_b,))?
+            .call1((words,))?
             .extract()?;
-        println!("{result}");
+        println!("{:?}", result);
         Ok(result)
     })
 }
@@ -152,12 +152,12 @@ fn play_spymaster_game() {
     let mut choice = String::new();
     print_board(&board);
     while !clue_re.is_match(&choice) {
-        println!("Provide a clue: ");
+        println!("Provide a clue:");
         io::stdin().read_line(&mut choice).expect("Failed to read choice."); 
     }
     let remaining_words = get_remaining_words(&board);
     println!("{:?}", remaining_words);
-    compute_word_similarity("tomato", "red").expect("Couldn't get result from AI model");
+    compute_word_similarity(remaining_words).expect("Couldn't get result from AI model");
 }
 
 
