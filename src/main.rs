@@ -18,13 +18,17 @@ struct Board {
     guessed_mask: Vec<Vec<bool>>,
 }
 
-fn compute_word_similarity(words: Vec<String>) -> PyResult<Vec<f32>> {
+fn compute_word_to_words_similarity (
+    reference_word: &String, 
+    words: &Vec<String>
+) -> PyResult<Vec<f32>> {
+
     pyo3::prepare_freethreaded_python();
     Python::with_gil(|py| {
         let ai_tools = PyModule::import(py, "ai_tools")?;
         let result: Vec<f32> = ai_tools
-            .getattr("compute_similarity")?
-            .call1((words,))?
+            .getattr("compute_word_to_words_similarity")?
+            .call1((reference_word.clone(), words.clone(),))?
             .extract()?;
         println!("{:?}", result);
         Ok(result)
@@ -140,6 +144,19 @@ fn get_remaining_words(board: &Board) -> Vec<String> {
     return remaining_words;
 }
 
+fn get_n_max_words(words: &Vec<String>, 
+                   values: &Vec<f32>, 
+                   n: usize) -> Vec<String> {
+    let mut pairs: Vec<_> = words.iter().zip(values.iter()).collect();
+    pairs.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+
+    let max_words: Vec<String> = pairs
+        .iter()
+        .take(n)
+        .map(|(s, _)| s.to_string())
+        .collect();
+    return max_words;
+}
 
 fn play_spymaster_game() {
     let mut board = Board {
@@ -149,15 +166,32 @@ fn play_spymaster_game() {
     };
 
     let clue_re = Regex::new(r"\w \d").unwrap();
-    let mut choice = String::new();
-    print_board(&board);
-    while !clue_re.is_match(&choice) {
-        println!("Provide a clue:");
-        io::stdin().read_line(&mut choice).expect("Failed to read choice."); 
+    let mut clue = String::new();
+    // Game loop
+    loop {
+        print_board(&board);
+
+        // Get clue from user
+        while !clue_re.is_match(&clue) {
+            println!("Provide a clue:");
+            io::stdin().read_line(&mut clue).expect("Failed to read choice."); 
+        }
+        let clue_parts: Vec<&str> = clue.split(' ').collect();
+        let reference_word: String = clue_parts[0].to_string();
+        let n_words_referenced: usize = clue_parts[clue_parts.len() - 1]
+            .trim()
+            .parse()
+            .expect("Last value of the clue is not an integer");
+
+        let remaining_words = get_remaining_words(&board);
+        let result: Vec<f32> = compute_word_to_words_similarity(
+            &reference_word, 
+            &remaining_words)
+            .expect("Couldn't get result from AI model");
+        let max_words: Vec<String> = get_n_max_words(
+            &remaining_words, &result, n_words_referenced);
+        println!("max_words: {:?}", max_words);
     }
-    let remaining_words = get_remaining_words(&board);
-    println!("{:?}", remaining_words);
-    compute_word_similarity(remaining_words).expect("Couldn't get result from AI model");
 }
 
 
