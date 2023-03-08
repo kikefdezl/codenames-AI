@@ -25,9 +25,6 @@ def compute_word_to_words_similarity(
         the reference word and the list of other words. The returned values 
         are in the same order as the input list.
     """
-    print(reference_word)
-    print()
-    print(words)
     result = []
     for word in words:
         # Encode the two words as input to the model
