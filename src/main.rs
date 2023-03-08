@@ -3,7 +3,8 @@ use std::io;
 use crate::spymaster::play_spymaster_game;
 
 mod spymaster;
-
+mod common;
+mod constants;
 
 fn game_selection_menu() -> u8 {
     let mut gametype: u8 = 0;
