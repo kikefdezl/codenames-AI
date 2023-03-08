@@ -3,5 +3,5 @@
 /.idea
 /.vscode
 /*egg-info
-__pycache__
+/ai_tools/__pycache__/*
 /build
