@@ -97,6 +97,18 @@ fn get_remaining_words(board: &Board) -> Vec<String> {
     return remaining_words;
 }
 
+fn cross_guessed_words(board: &mut Board, max_words: &Vec<String>) {
+    for row in 0..BOARD_SIZE {
+        for col in 0..BOARD_SIZE {
+            for word in max_words {
+                if board.words[row][col] == *word {
+                    board.guessed_mask[row][col] = true;
+                }
+            }
+        }
+    }
+}
+
 pub fn play_spymaster_game() {
     let mut board = Board {
         words: get_word_board(),
@@ -129,7 +141,8 @@ pub fn play_spymaster_game() {
             .expect("Couldn't get result from AI model");
         let max_words: Vec<String> = get_n_max_words(
             &remaining_words, &result, n_words_referenced);
-        println!("max_words: {:?}", max_words);
+        println!("AI guesses: {:?}", max_words);
+        cross_guessed_words(&mut board, &max_words);
         clue = "".to_string();
     }
 }

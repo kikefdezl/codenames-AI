@@ -26,14 +26,17 @@ pub fn print_board(board: &Board) {
     let mut your_words: Vec<String> = Vec::new();
     for row in 0..BOARD_SIZE {
         for col in 0..BOARD_SIZE {
+
+            let mut word = board.words[row][col].to_string();
             if board.team_mask[col][row] {
-                let colored_word = board.words[row][col].blue();
-                print!("{:>print_width$}", colored_word); 
+                word = word.blue().to_string();
                 your_words.push(board.words[row][col].to_string());
             }
-            else {
-                print!("{:>print_width$}", board.words[row][col]);
+
+            if board.guessed_mask[col][row] {
+                word.push_str("\x1B[0m");    
             }
+            print!("{:>print_width$}", board.words[row][col]);
         }
         println!("");
     }
