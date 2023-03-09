@@ -20,7 +20,7 @@ fn compute_word_to_words_similarity (
         let ai_tools = PyModule::import(py, "ai_tools")?;
         let result: Vec<f32> = ai_tools
             .getattr("compute_word_to_words_similarity")?
-            .call1((reference_word.clone(), words.clone(),))?
+            .call1((reference_word.clone(), words.clone(), ))?
             .extract()?;
         Ok(result)
     })
@@ -97,6 +97,17 @@ fn get_remaining_words(board: &Board) -> Vec<String> {
     return remaining_words;
 }
 
+fn get_remaining_team_words(board: &Board) -> i8 {
+    let mut n: i8 = 0;
+    for row in 0..BOARD_SIZE {
+        for col in 0..BOARD_SIZE {
+            if !board.guessed_mask[row][col] && board.team_mask[row][col] {
+                n += 1;
+            }
+        }
+    }
+    return n;
+}
 fn cross_guessed_words(board: &mut Board, max_words: &Vec<String>) {
     for row in 0..BOARD_SIZE {
         for col in 0..BOARD_SIZE {
@@ -133,7 +144,6 @@ pub fn play_spymaster_game() {
             .trim()
             .parse()
             .expect("Last value of the clue is not an integer");
-
         let remaining_words = get_remaining_words(&board);
         let result: Vec<f32> = compute_word_to_words_similarity(
             &reference_word, 
@@ -143,6 +153,11 @@ pub fn play_spymaster_game() {
             &remaining_words, &result, n_words_referenced);
         println!("AI guesses: {:?}", max_words);
         cross_guessed_words(&mut board, &max_words);
+        if get_remaining_team_words(&board) == 0 {
+            break;
+        }
         clue = "".to_string();
+        println!(" ");
     }
+    println!("You win!");
 }
