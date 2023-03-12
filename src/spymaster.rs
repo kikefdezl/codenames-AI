@@ -53,7 +53,6 @@ fn get_word_board() ->  Vec<Vec<String>> {
     return board;
 }
 
-
 fn get_team_mask() -> Vec<Vec<bool>> {
     let mut count = 0;
     let mut mask = vec![vec![false; BOARD_SIZE]; BOARD_SIZE];

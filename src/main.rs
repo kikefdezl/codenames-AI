@@ -7,16 +7,29 @@ mod common;
 mod constants;
 
 fn game_selection_menu() -> u8 {
-    let mut gametype: u8 = 0;
     let choice_range = (1, 2);
-    while gametype < choice_range.0 || choice_range.1 < gametype  { 
+    let mut gametype: u8 = 0;
+    loop {
         println!("Select what you would like to play as [{}-{}]",
                  choice_range.0.to_string(), choice_range.1.to_string());
         println!("1. Spymaster");
         println!("2. Exit");
         let mut choice = String::new();
         io::stdin().read_line(&mut choice).expect("Failed to read choice."); 
-        gametype = choice.trim().parse().expect("Please type a number.");
+        match choice.trim().parse::<u8>() {
+            Ok(num) if choice_range.0 <= num && num <= choice_range.1 => { 
+                gametype = num;
+                break;
+            }
+            Ok(_) => {
+                println!("Invalid input.");
+                continue;
+            }
+            Err(_) => {
+                println!("Invalid input.");
+                continue;
+            }
+        }
     }
     return gametype;
 }
