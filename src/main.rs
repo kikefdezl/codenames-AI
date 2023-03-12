@@ -8,7 +8,6 @@ mod constants;
 
 fn game_selection_menu() -> u8 {
     let choice_range = (1, 2);
-    let mut gametype: u8 = 0;
     loop {
         println!("Select what you would like to play as [{}-{}]",
                  choice_range.0.to_string(), choice_range.1.to_string());
@@ -18,8 +17,7 @@ fn game_selection_menu() -> u8 {
         io::stdin().read_line(&mut choice).expect("Failed to read choice."); 
         match choice.trim().parse::<u8>() {
             Ok(num) if choice_range.0 <= num && num <= choice_range.1 => { 
-                gametype = num;
-                break;
+                return num;
             }
             Ok(_) => {
                 println!("Invalid input.");
@@ -31,7 +29,6 @@ fn game_selection_menu() -> u8 {
             }
         }
     }
-    return gametype;
 }
 
 
