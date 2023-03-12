@@ -12,6 +12,7 @@ Must have Python 3 and Rust installed.
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+pip install .
 
 cargo run
 ```
