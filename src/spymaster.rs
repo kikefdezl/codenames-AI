@@ -2,6 +2,7 @@ use rand::Rng;
 use rand::prelude::SliceRandom;
 use std::fs::File;
 use std::path::Path;
+use std::process;
 use std::io::{ self, BufRead };
 use pyo3::prelude::*;
 use regex::Regex;
@@ -134,10 +135,15 @@ pub fn play_spymaster_game() {
 
         // Get clue from user
         while !clue_re.is_match(&clue) {
+            clue = "".to_string();
             println!("Provide a clue:");
             io::stdin().read_line(&mut clue).expect("Failed to read choice."); 
+            if clue.trim() == "exit" {
+                println!("Exiting.");
+                process::exit(0);
+            }
         }
-        let clue_parts: Vec<&str> = clue.split(' ').collect();
+        let clue_parts: Vec<&str> = clue.trim().split(' ').collect();
         let reference_word: String = clue_parts[0].to_string();
         let n_words_referenced: usize = clue_parts[clue_parts.len() - 1]
             .trim()
