@@ -30,7 +30,7 @@ pub fn print_board(board: &Board) {
             let mut padding = print_width - word.len(); 
 
             if board.team_mask[row][col] {
-                word = word.blue().to_string();
+                word = word.red().to_string();
                 if !board.guessed_mask[row][col] {
                     your_words.push(board.words[row][col].to_string());
                 }
