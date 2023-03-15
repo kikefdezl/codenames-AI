@@ -1,18 +1,21 @@
 use std::io;
 
 use crate::spymaster::play_spymaster_game;
+use crate::agent::play_agent_game;
 
+mod agent;
 mod spymaster;
 mod common;
 mod constants;
 
 fn game_selection_menu() -> u8 {
-    let choice_range = (1, 2);
+    let choice_range = (1, 3);
     loop {
         println!("Select what you would like to play as [{}-{}]",
                  choice_range.0.to_string(), choice_range.1.to_string());
         println!("1. Spymaster");
-        println!("2. Exit");
+        println!("2. Agent");
+        println!("3. Exit");
         let mut choice = String::new();
         io::stdin().read_line(&mut choice).expect("Failed to read choice."); 
         match choice.trim().parse::<u8>() {
@@ -39,9 +42,12 @@ fn main() {
     loop {
         let gametype = game_selection_menu();
         if gametype == 1 {
-            play_spymaster_game()
+            play_spymaster_game();
         }
         if gametype == 2 {
+            play_agent_game();
+        }
+        if gametype == 3 {
             break;
         }
     }
