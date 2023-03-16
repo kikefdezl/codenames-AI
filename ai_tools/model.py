@@ -3,8 +3,13 @@ from __future__ import annotations
 import gensim
 
 from ai_tools.download import download_model
-from ai_tools.settings import MODEL_NAME, FULL_MODEL_PATH
+from ai_tools.settings import MODEL, FULL_MODEL_PATH
 
+download_model()
+model = gensim.models.KeyedVectors.load_word2vec_format(
+    FULL_MODEL_PATH.with_suffix(".bin"),
+    binary=True
+)
 
 def compute_word_to_word_similarity(model, word_a: str, word_b: str) -> float:
     # Encode the two words as input to the model
@@ -29,11 +34,6 @@ def compute_word_to_words_similarity(
         the reference word and the list of other words. The returned values 
         are in the same order as the input list.
     """
-    download_model(MODEL_NAME)
-    model = gensim.models.KeyedVectors.load_word2vec_format(
-        FULL_MODEL_PATH.with_suffix(".bin"),
-        binary=True
-    )
     result = []
     for word in words:
         result.append(compute_word_to_word_similarity(model, reference_word, word))
