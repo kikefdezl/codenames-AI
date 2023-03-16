@@ -1,14 +1,10 @@
-use rand::Rng;
-use rand::prelude::SliceRandom;
-use std::fs::File;
-use std::path::Path;
 use std::process;
-use std::io::{ self, BufRead };
+use std::io;
 use pyo3::prelude::*;
 use regex::Regex;
 
-use crate::common::{ Board, print_board };
-use crate::constants:: { BOARD_SIZE, WORD_LIST_FILE, NUM_WORDS_TO_GUESS }; 
+use crate::common::{ Board, print_board, get_team_mask, get_word_board};
+use crate::constants:: { BOARD_SIZE }; 
 
 
 fn compute_word_to_words_similarity (
@@ -27,49 +23,7 @@ fn compute_word_to_words_similarity (
     })
 }
 
-fn get_word_board() ->  Vec<Vec<String>> {
-    // Open the file
-    let path = Path::new(WORD_LIST_FILE);
-    let file = File::open(&path).expect("Failed to open file");
-    let lines: Vec<String> = io::BufReader::new(file)
-        .lines()
-        .map(|line| {
-            if let Ok(l) = line {
-                l
-            } else {
-                panic!("Failed to read the line from file");
-            }
-        })
-        .collect();
 
-    // Shuffle the vector
-    let mut rng = rand::thread_rng();
-    let mut words: Vec<String> = lines.iter().map(|s| s.to_string()).collect();
-    words.shuffle(&mut rng);
-
-    // Select BOARD_SIZE*BOARD_SIZE words, and split it into a 2D vector
-    let selected_words: Vec<String> = words.iter().take(BOARD_SIZE*BOARD_SIZE).cloned().collect();
-    let board: Vec<Vec<String>> = selected_words.chunks(BOARD_SIZE).map(|chunk| chunk.to_vec()).collect();
-
-    return board;
-}
-
-fn get_team_mask() -> Vec<Vec<bool>> {
-    let mut count = 0;
-    let mut mask = vec![vec![false; BOARD_SIZE]; BOARD_SIZE];
-    loop {
-        let col = rand::thread_rng().gen_range(0..BOARD_SIZE);
-        let row = rand::thread_rng().gen_range(0..BOARD_SIZE);
-        if mask[col][row] == false {
-            mask[col][row] = true;
-            count = count + 1;
-            if count == NUM_WORDS_TO_GUESS {
-                break;
-            }
-        }
-    }
-    return mask;
-}
 
 fn get_n_max_words(words: &Vec<String>, 
                    values: &Vec<f32>, 
