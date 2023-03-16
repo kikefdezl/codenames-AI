@@ -1,20 +1,24 @@
 from __future__ import annotations
 
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-import numpy as np
-import torch
-from tqdm import tqdm
+import gensim
 
-# Load pre-trained model and tokenizer
-model_name = "textattack/bert-base-uncased-MNLI"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForSequenceClassification.from_pretrained(model_name)
+from ai_tools.download import download_model
+from ai_tools.settings import MODEL_NAME, FULL_MODEL_PATH
+
+
+def compute_word_to_word_similarity(model, word_a: str, word_b: str) -> float:
+    # Encode the two words as input to the model
+    try:
+        similarity = model.similarity(word_a, word_b)
+    except KeyError:
+        similarity = 0.0
+    return similarity
 
 
 # Define function to compute semantic similarity
 def compute_word_to_words_similarity(
         reference_word: str,
-        words: list[str], 
+        words: list[str],
 ) -> list[float]:
     """
     Computes the semantic similarity between a reference word and
@@ -25,52 +29,12 @@ def compute_word_to_words_similarity(
         the reference word and the list of other words. The returned values 
         are in the same order as the input list.
     """
+    download_model(MODEL_NAME)
+    model = gensim.models.KeyedVectors.load_word2vec_format(
+        FULL_MODEL_PATH.with_suffix(".bin"),
+        binary=True
+    )
     result = []
     for word in words:
-        # Encode the two words as input to the model
-        inputs = tokenizer.encode_plus(
-            reference_word,
-            word, 
-            return_tensors='pt', 
-            padding=True, 
-            truncation=True, 
-            max_length=128
-        )
-
-        # Pass the inputs through the model and get the logits
-        outputs = model(**inputs)
-        logits = outputs.logits
-
-        # Apply softmax to the logits to get probabilities
-        probs = torch.softmax(logits, dim=1)
-
-        # Return the probability that the two words are semantically similar
-        result.append(probs[0][1].item())
+        result.append(compute_word_to_word_similarity(model, reference_word, word))
     return result
-
-
-def get_similarity_matrix(wordlist: list[str]) -> np.ndarray:
-    n_words = len(wordlist)
-    similarity_matrix = np.zeros((n_words, n_words), dtype=np.float32)
-    for i in tqdm(list(range(n_words)), "Computing similarity matrix"):
-        word_a = wordlist[i]
-        for j in range(i, n_words):
-            word_b = wordlist[j]
-            similarity = compute_similarity(word_a, word_b)
-
-            if i == j:
-                continue
-
-            similarity_matrix[i, j] = similarity
-            similarity_matrix[j, i] = similarity
-    return similarity_matrix
-
-
-def plot_similarity_matrix(matrix: np.ndarray, wordlist: list[str]):
-    fig, ax = plt.subplots()
-
-    ax.matshow(matrix, cmap=plt.cm.Oranges)
-    plt.yticks(range(len(wordlist)))
-    plt.xticks(range(len(wordlist)))
-    ax.set_xticklabels(wordlist, rotation=90)
-    ax.set_yticklabels(wordlist)
