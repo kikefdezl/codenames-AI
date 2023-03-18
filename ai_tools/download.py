@@ -29,7 +29,7 @@ def download_model() -> None:
                 unit='B',
                 unit_scale=True,
                 miniters=1,
-                desc=MODEL_DICT[MODEL].split('/')[-1]
+                desc=MODEL_DICT[MODEL]["file_name"].split('/')[-1]
         ) as t:
             urllib.request.urlretrieve(
                 MODEL_DICT[MODEL]["http_link"],

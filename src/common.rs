@@ -1,4 +1,5 @@
 use colored::*;
+use std::process;
 use std::fs::File;
 use rand::prelude::SliceRandom;
 use rand::Rng;
@@ -79,20 +80,41 @@ pub fn get_word_board() ->  Vec<Vec<String>> {
 
     return board;
 }
-pub fn print_board(board: &Board) {
+
+pub fn read_user_input() -> String {
+    let mut input = String::new(); 
+    io::stdin().read_line(&mut input).expect("Failed to read guess."); 
+    let trimmed_input = input.trim();
+    if trimmed_input.to_lowercase() == "exit" {
+        println!("Exiting.");
+        process::exit(0);
+        }
+    return trimmed_input.to_string(); 
+}
+
+pub fn cross_guessed_words(board: &mut Board, max_words: &Vec<String>) {
+    for row in 0..BOARD_SIZE {
+        for col in 0..BOARD_SIZE {
+            for word in max_words {
+                if board.words[row][col].to_lowercase() == *word.to_lowercase() {
+                    board.guessed_mask[row][col] = true;
+                }
+            }
+        }
+    }
+}
+
+pub fn print_board(board: &Board, colors: bool) {
     let print_width = get_max_word_length(&board.words) + 2;
-    let mut your_words: Vec<String> = Vec::new();
     for row in 0..BOARD_SIZE {
         for col in 0..BOARD_SIZE {
             let mut word = board.words[row][col].to_string();
             let mut padding = print_width - word.len(); 
 
-            if board.team_mask[row][col] {
+            if board.team_mask[row][col] && colors {
                 word = word.red().to_string();
-                if !board.guessed_mask[row][col] {
-                    your_words.push(board.words[row][col].to_string());
-                }
             }
+
             if board.guessed_mask[row][col] {
                 word = "".to_string();
                 padding = print_width;
@@ -103,7 +125,18 @@ pub fn print_board(board: &Board) {
         }
         println!("");
     }
+}
+
+pub fn print_your_words(board: &Board) {
+    let mut your_words: Vec<String> = Vec::new();
+    for row in 0..BOARD_SIZE {
+        for col in 0..BOARD_SIZE {
+            if board.team_mask[row][col] && !board.guessed_mask[row][col] {
+                your_words.push(board.words[row][col].to_string());
+            }
+        }
+    }
     let joined = your_words.join(", ");
-    println!("Your words: {joined}");
+        println!("Your words: {joined}");
 }
 

@@ -1,10 +1,10 @@
-use std::process;
-use std::io;
 use pyo3::prelude::*;
 use regex::Regex;
 
-use crate::common::{ Board, print_board, get_team_mask, get_word_board};
-use crate::constants:: { BOARD_SIZE }; 
+use crate::common::print_your_words;
+use crate::common::{ Board, print_board, get_team_mask, get_word_board, 
+    read_user_input, cross_guessed_words };
+use crate::constants:: BOARD_SIZE; 
 
 
 fn compute_word_to_words_similarity (
@@ -62,17 +62,8 @@ fn get_remaining_team_words(board: &Board) -> i8 {
     }
     return n;
 }
-fn cross_guessed_words(board: &mut Board, max_words: &Vec<String>) {
-    for row in 0..BOARD_SIZE {
-        for col in 0..BOARD_SIZE {
-            for word in max_words {
-                if board.words[row][col] == *word {
-                    board.guessed_mask[row][col] = true;
-                }
-            }
-        }
-    }
-}
+
+
 
 pub fn play_spymaster_game() {
     let mut board = Board {
@@ -85,17 +76,13 @@ pub fn play_spymaster_game() {
     let mut clue = String::new();
     // Game loop
     loop {
-        print_board(&board);
+        print_board(&board, true);
+        print_your_words(&board);
 
         // Get clue from user
         while !clue_re.is_match(&clue) {
-            clue = "".to_string();
             println!("Provide a clue:");
-            io::stdin().read_line(&mut clue).expect("Failed to read choice."); 
-            if clue.trim() == "exit" {
-                println!("Exiting.");
-                process::exit(0);
-            }
+                clue = read_user_input();
         }
         let clue_parts: Vec<&str> = clue.trim().split(' ').collect();
         let reference_word: String = clue_parts[0].to_string();
@@ -115,6 +102,8 @@ pub fn play_spymaster_game() {
         if get_remaining_team_words(&board) == 0 {
             break;
         }
+
+        // reset
         clue = "".to_string();
         println!(" ");
     }
