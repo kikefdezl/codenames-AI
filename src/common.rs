@@ -6,7 +6,7 @@ use rand::Rng;
 use std::path::Path;
 use std::io::{ self, BufRead };
 
-use crate::constants:: { BOARD_SIZE, WORD_LIST_FILE, NUM_WORDS_TO_GUESS }; 
+use crate::constants:: { BOARD_SIZE, WORDS_CODENAMES_LIST, NUM_WORDS_TO_GUESS }; 
 
 pub struct Board {
     pub words: Vec<Vec<String>>,
@@ -44,9 +44,8 @@ pub fn get_team_mask() -> Vec<Vec<bool>> {
     return mask;
 }
 
-pub fn get_word_board() ->  Vec<Vec<String>> {
-    // Open the file
-    let path = Path::new(WORD_LIST_FILE);
+pub fn read_word_file(path: &str) -> Vec<String> {
+    let path = Path::new(&path);
     let file = File::open(&path).expect("Failed to open file");
     let lines: Vec<String> = io::BufReader::new(file)
         .lines()
@@ -58,7 +57,12 @@ pub fn get_word_board() ->  Vec<Vec<String>> {
             }
         })
         .collect();
+    return lines;
+}
 
+pub fn get_word_board() ->  Vec<Vec<String>> {
+    // Open the file
+    let lines = read_word_file(WORDS_CODENAMES_LIST);
     // Shuffle the vector
     let mut rng = rand::thread_rng();
     let mut words: Vec<String> = lines
@@ -139,4 +143,3 @@ pub fn print_your_words(board: &Board) {
     let joined = your_words.join(", ");
         println!("Your words: {joined}");
 }
-
