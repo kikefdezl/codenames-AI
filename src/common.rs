@@ -1,4 +1,5 @@
 use colored::*;
+use pyo3::prelude::*;
 use std::process;
 use std::fs::File;
 use rand::prelude::SliceRandom;
@@ -12,6 +13,34 @@ pub struct Board {
     pub words: Vec<Vec<String>>,
     pub team_mask: Vec<Vec<bool>>,
     pub guessed_mask: Vec<Vec<bool>>,
+}
+
+pub fn compute_word_to_words_similarity (
+    reference_word: &String, 
+    words: &Vec<String>
+) -> PyResult<Vec<f32>> {
+
+    pyo3::prepare_freethreaded_python();
+    Python::with_gil(|py| {
+        let ai_tools = PyModule::import(py, "ai_tools")?;
+        let result: Vec<f32> = ai_tools
+            .getattr("compute_word_to_words_similarity")?
+            .call1((reference_word.clone(), words.clone(), ))?
+            .extract()?;
+        Ok(result)
+    })
+}
+
+pub fn get_remaining_words(board: &Board) -> Vec<String> {
+    let mut remaining_words = Vec::new();
+    for row in 0..BOARD_SIZE {
+        for col in 0..BOARD_SIZE {
+            if !board.guessed_mask[row][col] {
+                remaining_words.push(board.words[row][col].to_string());
+            }
+        }
+    }
+    return remaining_words;
 }
 
 fn get_max_word_length(board: &Vec<Vec<String>>) -> usize {

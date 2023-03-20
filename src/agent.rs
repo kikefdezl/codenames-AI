@@ -1,13 +1,15 @@
+use crate::constants:: { BOARD_SIZE, WORDS_10K_LIST };
 use crate::common::{ 
     Board, 
     print_board, 
     get_team_mask, 
     get_word_board, 
+    get_remaining_words,
     read_user_input, 
     cross_guessed_words, 
-    read_word_file 
+    read_word_file,
+    compute_word_to_words_similarity
 };
-use crate::constants:: { BOARD_SIZE, WORDS_10K_LIST };
 
 fn word_in_board(input_word: &String, word_board: &Vec<Vec<String>>) -> bool {
     for row in word_board {
@@ -21,6 +23,11 @@ fn word_in_board(input_word: &String, word_board: &Vec<Vec<String>>) -> bool {
 }
 
 fn give_clue(board: &Board, words_10k: &Vec<String>) -> String {
+    let words_on_board= get_remaining_words(board);
+    for word in words_10k {
+        println!("{word}");
+        let result = compute_word_to_words_similarity(word, &words_on_board);
+    }
     return "testing".to_string();
 }
 

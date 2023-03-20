@@ -1,29 +1,17 @@
-use pyo3::prelude::*;
 use regex::Regex;
 
-use crate::common::print_your_words;
-use crate::common::{ Board, print_board, get_team_mask, get_word_board, 
-    read_user_input, cross_guessed_words };
 use crate::constants:: BOARD_SIZE; 
-
-
-fn compute_word_to_words_similarity (
-    reference_word: &String, 
-    words: &Vec<String>
-) -> PyResult<Vec<f32>> {
-
-    pyo3::prepare_freethreaded_python();
-    Python::with_gil(|py| {
-        let ai_tools = PyModule::import(py, "ai_tools")?;
-        let result: Vec<f32> = ai_tools
-            .getattr("compute_word_to_words_similarity")?
-            .call1((reference_word.clone(), words.clone(), ))?
-            .extract()?;
-        Ok(result)
-    })
-}
-
-
+use crate::common::{ 
+    Board, 
+    print_board, 
+    print_your_words,
+    get_team_mask, 
+    get_word_board, 
+    get_remaining_words,
+    read_user_input, 
+    cross_guessed_words,
+    compute_word_to_words_similarity
+};
 
 fn get_n_max_words(words: &Vec<String>, 
                    values: &Vec<f32>, 
@@ -39,17 +27,6 @@ fn get_n_max_words(words: &Vec<String>,
     return max_words;
 }
 
-fn get_remaining_words(board: &Board) -> Vec<String> {
-    let mut remaining_words = Vec::new();
-    for row in 0..BOARD_SIZE {
-        for col in 0..BOARD_SIZE {
-            if !board.guessed_mask[row][col] {
-                remaining_words.push(board.words[row][col].to_string());
-            }
-        }
-    }
-    return remaining_words;
-}
 
 fn get_remaining_team_words(board: &Board) -> i8 {
     let mut n: i8 = 0;
