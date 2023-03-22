@@ -4,12 +4,24 @@ use crate::common::{
     print_board, 
     get_team_mask, 
     get_word_board, 
-    get_remaining_words,
+    get_remaining_team_words,
+    get_remaining_non_team_words,
     read_user_input, 
     cross_guessed_words, 
     read_word_file,
     compute_word_to_words_similarity
 };
+
+
+fn find_max_value(numbers: &Vec<f32>) -> Option<f32> {
+    numbers.iter().fold(None, |max, current| {
+        match max {
+            Some(value) => Some(value.max(*current)),
+            None => Some(*current),
+        }
+    })
+}
+
 
 fn word_in_board(input_word: &String, word_board: &Vec<Vec<String>>) -> bool {
     for row in word_board {
@@ -23,10 +35,17 @@ fn word_in_board(input_word: &String, word_board: &Vec<Vec<String>>) -> bool {
 }
 
 fn give_clue(board: &Board, words_10k: &Vec<String>) -> String {
-    let words_on_board= get_remaining_words(board);
+    let team_words = get_remaining_team_words(board);
+    let non_team_words = get_remaining_non_team_words(board);
     for word in words_10k {
         println!("{word}");
-        let result = compute_word_to_words_similarity(word, &words_on_board);
+        let team_words_results = compute_word_to_words_similarity(word, &team_words)
+            .expect("Couldn't get result from AI model");
+        let non_team_words_results = compute_word_to_words_similarity(word, &non_team_words)
+            .expect("Couldn't get result from AI model");
+        let threshold = find_max_value(&non_team_words_results).expect("Vector is empty!"); 
+        println!("{threshold}")
+        
     }
     return "testing".to_string();
 }

@@ -8,10 +8,12 @@ use crate::common::{
     get_team_mask, 
     get_word_board, 
     get_remaining_words,
+    get_remaining_team_words,
     read_user_input, 
     cross_guessed_words,
     compute_word_to_words_similarity
 };
+
 
 fn get_n_max_words(words: &Vec<String>, 
                    values: &Vec<f32>, 
@@ -26,20 +28,6 @@ fn get_n_max_words(words: &Vec<String>,
         .collect();
     return max_words;
 }
-
-
-fn get_remaining_team_words(board: &Board) -> i8 {
-    let mut n: i8 = 0;
-    for row in 0..BOARD_SIZE {
-        for col in 0..BOARD_SIZE {
-            if !board.guessed_mask[row][col] && board.team_mask[row][col] {
-                n += 1;
-            }
-        }
-    }
-    return n;
-}
-
 
 
 pub fn play_spymaster_game() {
@@ -76,7 +64,7 @@ pub fn play_spymaster_game() {
             &remaining_words, &result, n_words_referenced);
         println!("AI guesses: {:?}", max_words);
         cross_guessed_words(&mut board, &max_words);
-        if get_remaining_team_words(&board) == 0 {
+        if get_remaining_team_words(&board).len() == 0 {
             break;
         }
 

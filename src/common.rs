@@ -43,6 +43,33 @@ pub fn get_remaining_words(board: &Board) -> Vec<String> {
     return remaining_words;
 }
 
+
+pub fn get_remaining_team_words(board: &Board) -> Vec<String> {
+    let mut words = Vec::new();
+    for row in 0..BOARD_SIZE {
+        for col in 0..BOARD_SIZE {
+            if !board.guessed_mask[row][col] && board.team_mask[row][col] {
+                words.push(board.words[row][col].to_string());
+            }
+        }
+    }
+    return words;
+}
+
+
+pub fn get_remaining_non_team_words(board: &Board) -> Vec<String> {
+    let mut words = Vec::new();
+    for row in 0..BOARD_SIZE {
+        for col in 0..BOARD_SIZE {
+            if !board.guessed_mask[row][col] && !board.team_mask[row][col] {
+                words.push(board.words[row][col].to_string());
+            }
+        }
+    }
+    return words;
+}
+
+
 fn get_max_word_length(board: &Vec<Vec<String>>) -> usize {
     let mut max = 0;
     for row in board {
