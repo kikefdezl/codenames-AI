@@ -17,7 +17,7 @@ def compute_word_to_word_similarity(model, word_a: str, word_b: str) -> float:
         similarity = model.similarity(word_a, word_b)
     except KeyError:
         similarity = 0.0
-    print(f"Similarity {word_a} - {word_b}: {similarity}")
+    # print(f"Similarity {word_a} - {word_b}: {similarity}")
     return similarity
 
 
