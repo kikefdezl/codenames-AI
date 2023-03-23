@@ -76,6 +76,11 @@ pub fn play_agent_game() {
     // Game loop
     loop {
         print_board(&board, false);
+        let remaining_team_words = get_remaining_team_words(&board);
+        if remaining_team_words.len() == 0 {
+            break;
+        }
+        println!("{} words remaining.", remaining_team_words.len());
 
         // AI provides clue here
         let clue = give_clue(&board, &words_10k);
@@ -85,6 +90,13 @@ pub fn play_agent_game() {
             println!("Provide your guess:");
             guess = read_user_input();
         }
+        if remaining_team_words.contains(&guess) {
+                println!("{guess}");
+                println!("Correct!");
+            }
+        else {
+            println!("Wrong...");
+        }
         let guessed_word = vec![guess.to_string(); 1];
         cross_guessed_words(&mut board, &guessed_word);
 
@@ -92,4 +104,5 @@ pub fn play_agent_game() {
         println!("");
         guess = "".to_string();
     }
+    println!("You win!");
 }
