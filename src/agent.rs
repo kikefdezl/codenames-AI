@@ -35,7 +35,7 @@ fn word_in_board(input_word: &String, word_board: &Vec<Vec<String>>) -> bool {
     return false;
 }
 
-fn give_clue(board: &Board, words_10k: &Vec<String>) -> String {
+fn give_clue(board: &Board, words_10k: &Vec<String>) -> (String, usize) {
     let team_words = get_remaining_team_words(board);
     let non_team_words = get_remaining_non_team_words(board);
     let mut max_count: usize = 0;
@@ -59,7 +59,7 @@ fn give_clue(board: &Board, words_10k: &Vec<String>) -> String {
         }
     }
     println!("\r                         ");
-    return format!("{} {}", best_clue.to_uppercase(), max_count);
+    return (best_clue.to_uppercase(), max_count);
 }
 
 
@@ -83,26 +83,31 @@ pub fn play_agent_game() {
         println!("{} words remaining.", remaining_team_words.len());
 
         // AI provides clue here
-        let clue = give_clue(&board, &words_10k);
-        println!("Clue: {clue}");
+        let (clue, to_guess_count) = give_clue(&board, &words_10k);
 
-        while !word_in_board(&guess, &board.words) {
-            println!("Provide your guess:");
-            guess = read_user_input();
-        }
-        if remaining_team_words.contains(&guess) {
-                println!("{guess}");
-                println!("Correct!");
+        let mut guessed_count = 0;
+        while guessed_count < to_guess_count {
+            println!("Clue: {} {}", clue, to_guess_count - guessed_count);
+            while !word_in_board(&guess, &board.words) {
+                println!("Provide your guess:");
+                guess = read_user_input();
             }
-        else {
-            println!("Wrong...");
-        }
-        let guessed_word = vec![guess.to_string(); 1];
-        cross_guessed_words(&mut board, &guessed_word);
 
-        // reset
-        println!("");
-        guess = "".to_string();
+            if remaining_team_words.contains(&guess.to_uppercase()) {
+                    println!("Correct!");
+                    guessed_count += 1;
+                }
+            else {
+                println!("Wrong...");
+                guessed_count = to_guess_count;
+            }
+            let guessed_word = vec![guess.to_string(); 1];
+            cross_guessed_words(&mut board, &guessed_word);
+
+            // reset
+            println!("");
+            guess = "".to_string();
+        }
     }
     println!("You win!");
 }
