@@ -24,10 +24,13 @@ fn find_max_value(numbers: &Vec<f32>) -> Option<f32> {
 }
 
 
-fn word_in_board(input_word: &String, word_board: &Vec<Vec<String>>) -> bool {
-    for row in word_board {
-        for word in row {
-            if input_word.to_lowercase() == word.to_lowercase() {
+fn word_in_board(input_word: &String, board: &Board) -> bool {
+
+    for row in 0..BOARD_SIZE  {
+        for col in 0..BOARD_SIZE {
+            if input_word.to_lowercase() 
+                == board.words[row][col].to_lowercase()
+                && !board.guessed_mask[row][col] {
                 return true;
             }
         }
@@ -35,18 +38,24 @@ fn word_in_board(input_word: &String, word_board: &Vec<Vec<String>>) -> bool {
     return false;
 }
 
-fn give_clue(board: &Board, words_10k: &Vec<String>) -> (String, usize) {
+fn give_clue(board: &Board, words_10k: &Vec<String>, used_clues: &Vec<String>) -> (String, usize) {
     let team_words = get_remaining_team_words(board);
     let non_team_words = get_remaining_non_team_words(board);
     let mut max_count: usize = 0;
     let mut best_clue = String::new();
 
+    let words_10k_filtered: Vec<String> = words_10k
+        .iter()
+        .filter(|s| !used_clues.contains(*s))
+        .cloned()
+        .collect();
+
     print!("Thinking...");
     stdout().flush().unwrap();
-    for word in words_10k {
-        let team_words_results = compute_word_to_words_similarity(word, &team_words)
+    for word in words_10k_filtered {
+        let team_words_results = compute_word_to_words_similarity(&word, &team_words)
             .expect("Couldn't get result from AI model");
-        let non_team_words_results = compute_word_to_words_similarity(word, &non_team_words)
+        let non_team_words_results = compute_word_to_words_similarity(&word, &non_team_words)
             .expect("Couldn't get result from AI model");
         let threshold = find_max_value(&non_team_words_results).expect("Vector is empty!"); 
         let words_above_threshold = team_words_results
@@ -72,6 +81,7 @@ pub fn play_agent_game() {
     };
     let words_10k = read_word_file(WORDS_10K_LIST);
     let mut guess = String::new();
+    let mut used_clues: Vec<String> = vec![];
 
     // Game loop
     loop {
@@ -82,13 +92,13 @@ pub fn play_agent_game() {
         }
         println!("{} words remaining.", remaining_team_words.len());
 
-        // AI provides clue here
-        let (clue, to_guess_count) = give_clue(&board, &words_10k);
+        let (clue, to_guess_count) = give_clue(&board, &words_10k, &used_clues);
+        used_clues.push(clue.clone());
 
         let mut guessed_count = 0;
         while guessed_count < to_guess_count {
             println!("Clue: {} {}", clue, to_guess_count - guessed_count);
-            while !word_in_board(&guess, &board.words) {
+            while !word_in_board(&guess, &board) {
                 println!("Provide your guess:");
                 guess = read_user_input();
             }

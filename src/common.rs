@@ -107,7 +107,7 @@ pub fn read_word_file(path: &str) -> Vec<String> {
         .lines()
         .map(|line| {
             if let Ok(l) = line {
-                l
+                l.to_uppercase()
             } else {
                 panic!("Failed to read the line from file");
             }
