@@ -1,5 +1,5 @@
 use std::io::{stdout, Write};
-use crate::constants:: { BOARD_SIZE, WORDS_10K_LIST };
+use crate::constants:: { BOARD_SIZE, WORDS_10K_LIST, RISK_THRESHOLD };
 use crate::common::{ 
     Board, 
     print_board, 
@@ -25,7 +25,6 @@ fn find_max_value(numbers: &Vec<f32>) -> Option<f32> {
 
 
 fn word_in_board(input_word: &String, board: &Board) -> bool {
-
     for row in 0..BOARD_SIZE  {
         for col in 0..BOARD_SIZE {
             if input_word.to_lowercase() 
@@ -46,7 +45,7 @@ fn give_clue(board: &Board, words_10k: &Vec<String>, used_clues: &Vec<String>) -
 
     let words_10k_filtered: Vec<String> = words_10k
         .iter()
-        .filter(|s| !used_clues.contains(*s))
+        .filter(|s| !used_clues.contains(&s) && !word_in_board(&s, board))
         .cloned()
         .collect();
 
@@ -57,7 +56,9 @@ fn give_clue(board: &Board, words_10k: &Vec<String>, used_clues: &Vec<String>) -
             .expect("Couldn't get result from AI model");
         let non_team_words_results = compute_word_to_words_similarity(&word, &non_team_words)
             .expect("Couldn't get result from AI model");
-        let threshold = find_max_value(&non_team_words_results).expect("Vector is empty!"); 
+        let threshold = find_max_value(&non_team_words_results)
+            .expect("Vector is empty!") 
+            + RISK_THRESHOLD; 
         let words_above_threshold = team_words_results
             .iter()
             .filter(|&x| *x > threshold)
@@ -71,8 +72,6 @@ fn give_clue(board: &Board, words_10k: &Vec<String>, used_clues: &Vec<String>) -
     return (best_clue.to_uppercase(), max_count);
 }
 
-
-
 pub fn play_agent_game() {
     let mut board = Board {
         words: get_word_board(),
@@ -82,14 +81,12 @@ pub fn play_agent_game() {
     let words_10k = read_word_file(WORDS_10K_LIST);
     let mut guess = String::new();
     let mut used_clues: Vec<String> = vec![];
+    let mut remaining_team_words = get_remaining_team_words(&board);
 
     // Game loop
-    loop {
+    while remaining_team_words.len() > 0 {
         print_board(&board, false);
-        let remaining_team_words = get_remaining_team_words(&board);
-        if remaining_team_words.len() == 0 {
-            break;
-        }
+        remaining_team_words = get_remaining_team_words(&board);
         println!("{} words remaining.", remaining_team_words.len());
 
         let (clue, to_guess_count) = give_clue(&board, &words_10k, &used_clues);
@@ -113,6 +110,11 @@ pub fn play_agent_game() {
             }
             let guessed_word = vec![guess.to_string(); 1];
             cross_guessed_words(&mut board, &guessed_word);
+
+            if get_remaining_non_team_words(&board).len() == 0 {
+                println!("You lose!");
+                return;
+            } 
 
             // reset
             println!("");
