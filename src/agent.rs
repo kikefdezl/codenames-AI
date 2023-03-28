@@ -1,5 +1,6 @@
-use std::io::{stdout, Write};
-use crate::constants:: { BOARD_SIZE, WORDS_10K_LIST, RISK_THRESHOLD };
+use indicatif::{ProgressBar, ProgressIterator, ProgressStyle};
+
+use crate::constants:: { BOARD_SIZE, WORDS_COMMON_LIST, RISK_THRESHOLD };
 use crate::common::{ 
     Board, 
     print_board, 
@@ -37,21 +38,27 @@ fn word_in_board(input_word: &String, board: &Board) -> bool {
     return false;
 }
 
-fn give_clue(board: &Board, words_10k: &Vec<String>, used_clues: &Vec<String>) -> (String, usize) {
+fn give_clue(board: &Board, words_common: &Vec<String>, used_clues: &Vec<String>) -> (String, usize) {
     let team_words = get_remaining_team_words(board);
     let non_team_words = get_remaining_non_team_words(board);
     let mut max_count: usize = 0;
     let mut best_clue = String::new();
 
-    let words_10k_filtered: Vec<String> = words_10k
+    let words_common_filtered: Vec<String> = words_common
         .iter()
         .filter(|s| !used_clues.contains(&s) && !word_in_board(&s, board))
         .cloned()
         .collect();
 
-    print!("Thinking...");
-    stdout().flush().unwrap();
-    for word in words_10k_filtered {
+    let pb = ProgressBar::new(words_common_filtered.len() as u64);
+    pb.set_style(ProgressStyle::default_bar()
+        .template("{msg} {bar:40.cyan/blue} {percent}%")
+        .unwrap()
+        .progress_chars("#>-"));
+    pb.set_message("Thinking...");
+
+    for word in words_common_filtered {
+        pb.inc(1);
         let team_words_results = compute_word_to_words_similarity(&word, &team_words)
             .expect("Couldn't get result from AI model");
         let non_team_words_results = compute_word_to_words_similarity(&word, &non_team_words)
@@ -68,7 +75,6 @@ fn give_clue(board: &Board, words_10k: &Vec<String>, used_clues: &Vec<String>) -
             best_clue = word.to_string();
         }
     }
-    println!("\r                         ");
     return (best_clue.to_uppercase(), max_count);
 }
 
@@ -78,7 +84,7 @@ pub fn play_agent_game() {
         team_mask: get_team_mask(),
         guessed_mask: vec![vec![false; BOARD_SIZE]; BOARD_SIZE]
     };
-    let words_10k = read_word_file(WORDS_10K_LIST);
+    let words_common = read_word_file(WORDS_COMMON_LIST);
     let mut guess = String::new();
     let mut used_clues: Vec<String> = vec![];
     let mut remaining_team_words = get_remaining_team_words(&board);
@@ -89,7 +95,7 @@ pub fn play_agent_game() {
         remaining_team_words = get_remaining_team_words(&board);
         println!("{} words remaining.", remaining_team_words.len());
 
-        let (clue, to_guess_count) = give_clue(&board, &words_10k, &used_clues);
+        let (clue, to_guess_count) = give_clue(&board, &words_common, &used_clues);
         used_clues.push(clue.clone());
 
         let mut guessed_count = 0;
