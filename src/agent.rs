@@ -1,4 +1,4 @@
-use indicatif::{ProgressBar, ProgressIterator, ProgressStyle};
+use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::constants:: { BOARD_SIZE, WORDS_COMMON_LIST, RISK_THRESHOLD };
 use crate::common::{ 
