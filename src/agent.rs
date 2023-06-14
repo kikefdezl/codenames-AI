@@ -1,36 +1,25 @@
 use indicatif::{ProgressBar, ProgressStyle};
 
-use crate::constants:: { BOARD_SIZE, WORDS_COMMON_LIST, RISK_THRESHOLD };
-use crate::common::{ 
-    Board, 
-    print_board, 
-    get_team_mask, 
-    get_word_board, 
-    get_remaining_team_words,
-    get_remaining_non_team_words,
-    read_user_input, 
-    cross_guessed_words, 
-    read_word_file,
-    compute_word_to_words_similarity
+use crate::common::{
+    compute_word_to_words_similarity, cross_guessed_words, get_remaining_non_team_words,
+    get_remaining_team_words, get_team_mask, get_word_board, print_board, read_user_input,
+    read_word_file, Board,
 };
-
+use crate::constants::{BOARD_SIZE, RISK_THRESHOLD, WORDS_COMMON_LIST};
 
 fn find_max_value(numbers: &Vec<f32>) -> Option<f32> {
-    numbers.iter().fold(None, |max, current| {
-        match max {
-            Some(value) => Some(value.max(*current)),
-            None => Some(*current),
-        }
+    numbers.iter().fold(None, |max, current| match max {
+        Some(value) => Some(value.max(*current)),
+        None => Some(*current),
     })
 }
 
-
 fn word_in_board(input_word: &String, board: &Board) -> bool {
-    for row in 0..BOARD_SIZE  {
+    for row in 0..BOARD_SIZE {
         for col in 0..BOARD_SIZE {
-            if input_word.to_lowercase() 
-                == board.words[row][col].to_lowercase()
-                && !board.guessed_mask[row][col] {
+            if input_word.to_lowercase() == board.words[row][col].to_lowercase()
+                && !board.guessed_mask[row][col]
+            {
                 return true;
             }
         }
@@ -38,7 +27,11 @@ fn word_in_board(input_word: &String, board: &Board) -> bool {
     return false;
 }
 
-fn give_clue(board: &Board, words_common: &Vec<String>, used_clues: &Vec<String>) -> (String, usize) {
+fn give_clue(
+    board: &Board,
+    words_common: &Vec<String>,
+    used_clues: &Vec<String>,
+) -> (String, usize) {
     let team_words = get_remaining_team_words(board);
     let non_team_words = get_remaining_non_team_words(board);
     let mut max_count: usize = 0;
@@ -51,10 +44,12 @@ fn give_clue(board: &Board, words_common: &Vec<String>, used_clues: &Vec<String>
         .collect();
 
     let pb = ProgressBar::new(words_common_filtered.len() as u64);
-    pb.set_style(ProgressStyle::default_bar()
-        .template("{msg} {bar:40.cyan/blue} {percent}%")
-        .unwrap()
-        .progress_chars("#>-"));
+    pb.set_style(
+        ProgressStyle::default_bar()
+            .template("{msg} {bar:40.cyan/blue} {percent}%")
+            .unwrap()
+            .progress_chars("#>-"),
+    );
     pb.set_message("Thinking...");
 
     for word in words_common_filtered {
@@ -63,9 +58,8 @@ fn give_clue(board: &Board, words_common: &Vec<String>, used_clues: &Vec<String>
             .expect("Couldn't get result from AI model");
         let non_team_words_results = compute_word_to_words_similarity(&word, &non_team_words)
             .expect("Couldn't get result from AI model");
-        let threshold = find_max_value(&non_team_words_results)
-            .expect("Vector is empty!") 
-            + RISK_THRESHOLD; 
+        let threshold =
+            find_max_value(&non_team_words_results).expect("Vector is empty!") + RISK_THRESHOLD;
         let words_above_threshold = team_words_results
             .iter()
             .filter(|&x| *x > threshold)
@@ -82,7 +76,7 @@ pub fn play_agent_game() {
     let mut board = Board {
         words: get_word_board(),
         team_mask: get_team_mask(),
-        guessed_mask: vec![vec![false; BOARD_SIZE]; BOARD_SIZE]
+        guessed_mask: vec![vec![false; BOARD_SIZE]; BOARD_SIZE],
     };
     let words_common = read_word_file(WORDS_COMMON_LIST);
     let mut guess = String::new();
@@ -107,10 +101,9 @@ pub fn play_agent_game() {
             }
 
             if remaining_team_words.contains(&guess.to_uppercase()) {
-                    println!("Correct!");
-                    guessed_count += 1;
-                }
-            else {
+                println!("Correct!");
+                guessed_count += 1;
+            } else {
                 println!("Wrong...");
                 guessed_count = to_guess_count;
             }
@@ -120,7 +113,7 @@ pub fn play_agent_game() {
             if get_remaining_non_team_words(&board).len() == 0 {
                 println!("You lose!");
                 return;
-            } 
+            }
 
             // reset
             println!("");

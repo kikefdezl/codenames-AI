@@ -1,13 +1,13 @@
 use colored::*;
 use pyo3::prelude::*;
-use std::process;
-use std::fs::File;
 use rand::prelude::SliceRandom;
 use rand::Rng;
+use std::fs::File;
+use std::io::{self, BufRead};
 use std::path::Path;
-use std::io::{ self, BufRead };
+use std::process;
 
-use crate::constants:: { BOARD_SIZE, WORDS_CODENAMES_LIST, NUM_WORDS_TO_GUESS }; 
+use crate::constants::{BOARD_SIZE, NUM_WORDS_TO_GUESS, WORDS_CODENAMES_LIST};
 
 pub struct Board {
     pub words: Vec<Vec<String>>,
@@ -15,17 +15,16 @@ pub struct Board {
     pub guessed_mask: Vec<Vec<bool>>,
 }
 
-pub fn compute_word_to_words_similarity (
-    reference_word: &String, 
-    words: &Vec<String>
+pub fn compute_word_to_words_similarity(
+    reference_word: &String,
+    words: &Vec<String>,
 ) -> PyResult<Vec<f32>> {
-
     pyo3::prepare_freethreaded_python();
     Python::with_gil(|py| {
         let ai_tools = PyModule::import(py, "ai_tools")?;
         let result: Vec<f32> = ai_tools
             .getattr("compute_word_to_words_similarity")?
-            .call1((reference_word.clone(), words.clone(), ))?
+            .call1((reference_word.clone(), words.clone()))?
             .extract()?;
         Ok(result)
     })
@@ -43,7 +42,6 @@ pub fn get_remaining_words(board: &Board) -> Vec<String> {
     return remaining_words;
 }
 
-
 pub fn get_remaining_team_words(board: &Board) -> Vec<String> {
     let mut words = Vec::new();
     for row in 0..BOARD_SIZE {
@@ -56,7 +54,6 @@ pub fn get_remaining_team_words(board: &Board) -> Vec<String> {
     return words;
 }
 
-
 pub fn get_remaining_non_team_words(board: &Board) -> Vec<String> {
     let mut words = Vec::new();
     for row in 0..BOARD_SIZE {
@@ -68,7 +65,6 @@ pub fn get_remaining_non_team_words(board: &Board) -> Vec<String> {
     }
     return words;
 }
-
 
 fn get_max_word_length(board: &Vec<Vec<String>>) -> usize {
     let mut max = 0;
@@ -116,21 +112,18 @@ pub fn read_word_file(path: &str) -> Vec<String> {
     return lines;
 }
 
-pub fn get_word_board() ->  Vec<Vec<String>> {
+pub fn get_word_board() -> Vec<Vec<String>> {
     // Open the file
     let lines = read_word_file(WORDS_CODENAMES_LIST);
     // Shuffle the vector
     let mut rng = rand::thread_rng();
-    let mut words: Vec<String> = lines
-        .iter()
-        .map(|s| s.to_string())
-        .collect();
+    let mut words: Vec<String> = lines.iter().map(|s| s.to_string()).collect();
     words.shuffle(&mut rng);
 
     // Select BOARD_SIZE*BOARD_SIZE words, and split it into a 2D vector
     let selected_words: Vec<String> = words
         .iter()
-        .take(BOARD_SIZE*BOARD_SIZE)
+        .take(BOARD_SIZE * BOARD_SIZE)
         .cloned()
         .collect();
     let board: Vec<Vec<String>> = selected_words
@@ -142,14 +135,16 @@ pub fn get_word_board() ->  Vec<Vec<String>> {
 }
 
 pub fn read_user_input() -> String {
-    let mut input = String::new(); 
-    io::stdin().read_line(&mut input).expect("Failed to read guess."); 
+    let mut input = String::new();
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Failed to read guess.");
     let trimmed_input = input.trim();
     if trimmed_input.to_lowercase() == "exit" {
         println!("Exiting.");
         process::exit(0);
-        }
-    return trimmed_input.to_string(); 
+    }
+    return trimmed_input.to_string();
 }
 
 pub fn cross_guessed_words(board: &mut Board, max_words: &Vec<String>) {
@@ -169,7 +164,7 @@ pub fn print_board(board: &Board, colors: bool) {
     for row in 0..BOARD_SIZE {
         for col in 0..BOARD_SIZE {
             let mut word = board.words[row][col].to_string();
-            let mut padding = print_width - word.len(); 
+            let mut padding = print_width - word.len();
 
             if board.team_mask[row][col] && colors {
                 word = word.red().to_string();
@@ -181,7 +176,6 @@ pub fn print_board(board: &Board, colors: bool) {
             }
             print!("{:>padding$}", "");
             print!("{}", word.to_string());
-           
         }
         println!("");
     }
@@ -197,5 +191,5 @@ pub fn print_your_words(board: &Board) {
         }
     }
     let joined = your_words.join(", ");
-        println!("Your words: {joined}");
+    println!("Your words: {joined}");
 }
