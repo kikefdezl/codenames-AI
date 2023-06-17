@@ -1,1 +1,1 @@
-from .model import compute_word_to_words_similarity
+from .model import compute_words_to_words_similarity

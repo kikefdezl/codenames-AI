@@ -1,7 +1,7 @@
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::common::{
-    compute_word_to_words_similarity, cross_guessed_words, get_remaining_non_team_words,
+    compute_words_to_words_similarity, cross_guessed_words, get_remaining_non_team_words,
     get_remaining_team_words, get_team_mask, get_word_board, print_board, read_user_input,
     read_word_file, Board,
 };
@@ -52,15 +52,16 @@ fn give_clue(
     );
     pb.set_message("Thinking...");
 
-    for word in words_common_filtered {
+    let team_words_results = compute_words_to_words_similarity(&words_common_filtered, &team_words)
+        .expect("Couldn't get result from AI model");
+    let non_team_words_results = compute_words_to_words_similarity(&words_common_filtered, &non_team_words)
+        .expect("Couldn't get result from AI model");
+
+    for (index, word) in words_common_filtered.iter().enumerate() {
         pb.inc(1);
-        let team_words_results = compute_word_to_words_similarity(&word, &team_words)
-            .expect("Couldn't get result from AI model");
-        let non_team_words_results = compute_word_to_words_similarity(&word, &non_team_words)
-            .expect("Couldn't get result from AI model");
         let threshold =
-            find_max_value(&non_team_words_results).expect("Vector is empty!") + RISK_THRESHOLD;
-        let words_above_threshold = team_words_results
+            find_max_value(&non_team_words_results[index]).expect("Vector is empty!") + RISK_THRESHOLD;
+        let words_above_threshold = team_words_results[index]
             .iter()
             .filter(|&x| *x > threshold)
             .count();

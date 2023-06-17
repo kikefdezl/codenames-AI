@@ -1,14 +1,14 @@
 use regex::Regex;
 
 use crate::common::{
-    compute_word_to_words_similarity, cross_guessed_words, get_remaining_team_words,
-    get_remaining_words, get_team_mask, get_word_board, print_board, print_your_words,
-    read_user_input, Board,
+    Board, compute_words_to_words_similarity, cross_guessed_words,
+    get_remaining_team_words, get_remaining_words, get_team_mask, get_word_board, print_board,
+    print_your_words, read_user_input,
 };
 use crate::constants::BOARD_SIZE;
 
-fn get_n_max_words(words: &Vec<String>, values: &Vec<f32>, n: usize) -> Vec<String> {
-    let mut pairs: Vec<_> = words.iter().zip(values.iter()).collect();
+fn get_n_max_words(words: &Vec<String>, values: &Vec<Vec<f32>>, n: usize) -> Vec<String> {
+    let mut pairs: Vec<_> = words.iter().zip(values[0].iter()).collect();
     pairs.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
 
     let max_words: Vec<String> = pairs.iter().take(n).map(|(s, _)| s.to_string()).collect();
@@ -65,7 +65,9 @@ pub fn play_spymaster_game() {
             clue_ok = true;
         }
 
-        let result: Vec<f32> = compute_word_to_words_similarity(&clue_word, &remaining_words)
+        let mut clue_word_vec: Vec<String> = Vec::new();
+        clue_word_vec.push(clue_word);
+        let result: Vec<Vec<f32>> = compute_words_to_words_similarity(&clue_word_vec, &remaining_words)
             .expect("Couldn't get result from AI model");
         let max_words: Vec<String> = get_n_max_words(&remaining_words, &result, clue_number);
         println!("AI guesses: {:?}", max_words);

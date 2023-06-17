@@ -3,6 +3,4 @@ torch
 matplotlib
 numpy
 tqdm
-gdown
-sentence-transformers
-sklearn
+scikit-learn

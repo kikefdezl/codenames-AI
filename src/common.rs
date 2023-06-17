@@ -15,16 +15,16 @@ pub struct Board {
     pub guessed_mask: Vec<Vec<bool>>,
 }
 
-pub fn compute_word_to_words_similarity(
-    reference_word: &String,
-    words: &Vec<String>,
-) -> PyResult<Vec<f32>> {
+pub fn compute_words_to_words_similarity(
+    words_a: &Vec<String>,
+    words_b: &Vec<String>,
+) -> PyResult<Vec<Vec<f32>>> {
     pyo3::prepare_freethreaded_python();
     Python::with_gil(|py| {
         let ai_tools = PyModule::import(py, "ai_tools")?;
-        let result: Vec<f32> = ai_tools
-            .getattr("compute_word_to_words_similarity")?
-            .call1((reference_word.clone(), words.clone()))?
+        let result: Vec<Vec<f32>> = ai_tools
+            .getattr("compute_words_to_words_similarity")?
+            .call1((words_a.clone(), words_b.clone()))?
             .extract()?;
         Ok(result)
     })
