@@ -1,12 +1,15 @@
 # CODENAMES-AI
 
-A project to play Codenames alone! Codenames is a popular board game designed by Vlaada 
-Chvátil, with an AI based on NLP models.
+Play Codenames alone! 
 
-As of now, the user is only able to play as Spymaster. Support for playing as Agent
-is coming in the future.
+![demo.jpg](.thumb/demo.GIF)
 
-The game is written in Rust, with the AI being handled by PyTorch-based models
+Codenames is a popular board game designed by Vlaada Chvátil which usually requires teammates to play. In this project, 
+a simple transformer-based language model is used so you can play alone.
+
+The user can play as both Spymaster (give clues, AI guesses), or as Agent (AI gives clues, user guesses).
+
+The game mechanica are written in Rust, with the language model being handled by HuggingFace models
 in Python. Rust calls the Python interpreter during runtime using `PyO3`.
 
 # How to run
