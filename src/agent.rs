@@ -1,11 +1,11 @@
-use indicatif::{ProgressBar, ProgressStyle};
-
 use crate::common::{
     compute_words_to_words_similarity, cross_guessed_words, get_remaining_non_team_words,
     get_remaining_team_words, get_team_mask, get_word_board, print_board, read_user_input,
     read_word_file, Board,
 };
 use crate::constants::{BOARD_SIZE, RISK_THRESHOLD, WORDS_COMMON_LIST};
+use std::io::Write;
+
 
 fn find_max_value(numbers: &Vec<f32>) -> Option<f32> {
     numbers.iter().fold(None, |max, current| match max {
@@ -37,20 +37,14 @@ fn give_clue(
     let mut max_count: usize = 0;
     let mut best_clue = String::new();
 
+    print!("Thinking...");
+    std::io::stdout().flush().unwrap();
+
     let words_common_filtered: Vec<String> = words_common
         .iter()
         .filter(|s| !used_clues.contains(&s) && !word_in_board(&s, board))
         .cloned()
         .collect();
-
-    let pb = ProgressBar::new(words_common_filtered.len() as u64);
-    pb.set_style(
-        ProgressStyle::default_bar()
-            .template("{msg} {bar:40.cyan/blue} {percent}%")
-            .unwrap()
-            .progress_chars("#>-"),
-    );
-    pb.set_message("Thinking...");
 
     let team_words_results = compute_words_to_words_similarity(&words_common_filtered, &team_words)
         .expect("Couldn't get result from AI model");
@@ -58,7 +52,6 @@ fn give_clue(
         .expect("Couldn't get result from AI model");
 
     for (index, word) in words_common_filtered.iter().enumerate() {
-        pb.inc(1);
         let threshold =
             find_max_value(&non_team_words_results[index]).expect("Vector is empty!") + RISK_THRESHOLD;
         let words_above_threshold = team_words_results[index]
@@ -70,6 +63,8 @@ fn give_clue(
             best_clue = word.to_string();
         }
     }
+    print!("\r");
+    println!("Done!             ");
     return (best_clue.to_uppercase(), max_count);
 }
 
