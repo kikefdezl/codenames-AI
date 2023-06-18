@@ -2,7 +2,7 @@
 
 Play Codenames alone! 
 
-![demo.jpg](.thumb/demo.GIF)
+![demo.jpg](.thumb/demo.gif)
 
 Codenames is a popular board game designed by Vlaada Chvátil which usually requires teammates to play. In this project, 
 a simple transformer-based language model is used so you can play alone.
