@@ -35,6 +35,5 @@ source venv/bin/activate
 Finally, install Codenames-AI:
 ```bash
 pip install .
-
 cargo run
 ```
