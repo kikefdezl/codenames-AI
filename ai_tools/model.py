@@ -7,11 +7,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 from transformers import AutoTokenizer, AutoModel
 
 
-# Mean Pooling - Take attention mask into account for correct averaging
 def mean_pooling(model_output, attention_mask):
-    token_embeddings = model_output[
-        0
-    ]  # First element of model_output contains all token embeddings
+    token_embeddings = model_output[0]
     input_mask_expanded = (
         attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
     )
@@ -21,6 +18,9 @@ def mean_pooling(model_output, attention_mask):
 
 
 def get_model():
+    """
+    Returns a Huggingface language model.
+    """
     tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L12-v1")
     model = AutoModel.from_pretrained("sentence-transformers/all-MiniLM-L12-v1")
 
@@ -30,6 +30,16 @@ def get_model():
 def compute_words_to_words_similarity(
     words_a: str | list[str], words_b: str | list[str]
 ) -> np.ndarray:
+    """
+    Given two lists of words, returns the contextual similarity between all the word
+    pairs of both lists.
+
+    :param words_a: First list of words.
+    :param words_b: Second list of words.
+    :return: A matrix with the similarity values between all the word pairs. The
+    returned value is a numpy array of size N x M, where N is the length of list A and
+    M the length of list B.
+    """
     if isinstance(words_a, str):
         words_a = [words_a]
     if isinstance(words_b, str):
@@ -54,6 +64,9 @@ def compute_words_to_words_similarity(
 
 
 if __name__ == "__main__":
+    """
+    For testing:
+    """
     words_a = ["BANANA", "AIRPLANE", "EGYPT", "SUITCASE", "WHEEL"]
     words_b = ["APPLE", "CAR", "GOVERNMENT", "RISK", "STONE", "METAL"]
     similarities = compute_words_to_words_similarity(words_a, words_b)
