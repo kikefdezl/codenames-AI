@@ -14,14 +14,26 @@ in Python. Rust calls the Python interpreter during runtime using `PyO3`.
 
 # How to run
 
-### Linux
+### Docker
 
-Must have Python 3 and Rust+Cargo installed.
+The easiest way to run Codenames-AI is through Docker:
+```bash
+docker build -t codenames docker
+docker run -it codenames
+```
 
+### Linux / Mac
+
+To run in Linux or Mac, you must have Python 3 and Rust+Cargo installed on your computer.
+
+It is highly recommended to create a virtual environment first to install your Python libraries:
 ```python
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+```
+
+Finally, install Codenames-AI:
+```bash
 pip install .
 
 cargo run

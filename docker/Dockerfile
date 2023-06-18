@@ -1,4 +1,3 @@
-# base
 FROM python:3.10.10-bullseye
 
 RUN apt update 
@@ -7,7 +6,6 @@ RUN apt install -y curl
 # codenames
 RUN git clone https://github.com/kikefdezl/codenames-AI.git /codenames
 WORKDIR /codenames
-RUN pip install -r requirements.txt
 RUN pip install .
 
 # rust
