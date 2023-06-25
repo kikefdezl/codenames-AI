@@ -32,8 +32,8 @@ fn give_clue(
     words_common: &Vec<String>,
     used_clues: &Vec<String>,
 ) -> (String, usize) {
-    let team_words = get_remaining_team_words(board);
-    let non_team_words = get_remaining_non_team_words(board);
+    let team_words: Vec<String> = get_remaining_team_words(board);
+    let non_team_words: Vec<String> = get_remaining_non_team_words(board);
     let mut max_count: usize = 0;
     let mut max_score: f32 = 0.0;
     let mut best_clue = String::new();
@@ -47,10 +47,19 @@ fn give_clue(
         .cloned()
         .collect();
 
-    let team_scores = compute_words_to_words_similarity(&words_common_filtered, &team_words)
+    let split_index = team_words.len();
+    let board_words = [team_words.to_vec(), non_team_words.to_vec()].concat();
+
+    let scores: Vec<Vec<f32>> = compute_words_to_words_similarity(&words_common_filtered, &board_words)
         .expect("Couldn't get result from AI model");
-    let non_team_scores = compute_words_to_words_similarity(&words_common_filtered, &non_team_words)
-        .expect("Couldn't get result from AI model");
+
+    let mut team_scores: Vec<Vec<f32>> = Vec::new();
+    let mut non_team_scores: Vec<Vec<f32>> = Vec::new();
+    for mut inner_vec in scores {
+        let right = inner_vec.split_off(split_index);
+        team_scores.push(inner_vec);
+        non_team_scores.push(right);
+    }
 
     for (index, word) in words_common_filtered.iter().enumerate() {
         let threshold =
