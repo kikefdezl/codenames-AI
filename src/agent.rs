@@ -1,11 +1,11 @@
-use crate::common::{
-    compute_words_to_words_similarity, cross_guessed_words, get_remaining_non_team_words,
-    get_remaining_team_words, get_team_mask, get_word_board, print_board, read_user_input,
-    read_word_file, Board,
-};
-use crate::constants::{BOARD_SIZE, RISK_THRESHOLD, WORDS_COMMON_LIST};
 use std::io::Write;
 
+use crate::common::{
+    Board, compute_words_to_words_similarity, cross_guessed_words,
+    get_remaining_non_team_words, get_remaining_team_words, get_team_mask, get_word_board, print_board,
+    read_user_input, read_word_file,
+};
+use crate::constants::{BOARD_SIZE, RISK_THRESHOLD, WORDS_COMMON_LIST};
 
 fn find_max_value(numbers: &Vec<f32>) -> Option<f32> {
     numbers.iter().fold(None, |max, current| match max {
@@ -35,6 +35,7 @@ fn give_clue(
     let team_words = get_remaining_team_words(board);
     let non_team_words = get_remaining_non_team_words(board);
     let mut max_count: usize = 0;
+    let mut max_score: f32 = 0.0;
     let mut best_clue = String::new();
 
     print!("Thinking...");
@@ -46,20 +47,31 @@ fn give_clue(
         .cloned()
         .collect();
 
-    let team_words_results = compute_words_to_words_similarity(&words_common_filtered, &team_words)
+    let team_scores = compute_words_to_words_similarity(&words_common_filtered, &team_words)
         .expect("Couldn't get result from AI model");
-    let non_team_words_results = compute_words_to_words_similarity(&words_common_filtered, &non_team_words)
+    let non_team_scores = compute_words_to_words_similarity(&words_common_filtered, &non_team_words)
         .expect("Couldn't get result from AI model");
 
     for (index, word) in words_common_filtered.iter().enumerate() {
         let threshold =
-            find_max_value(&non_team_words_results[index]).expect("Vector is empty!") + RISK_THRESHOLD;
-        let words_above_threshold = team_words_results[index]
+            find_max_value(&non_team_scores[index]).expect("Vector is empty!") + RISK_THRESHOLD;
+        let scores_above_thresh: Vec<&f32> = team_scores[index]
             .iter()
             .filter(|&x| *x > threshold)
-            .count();
-        if words_above_threshold > max_count {
-            max_count = words_above_threshold;
+            .collect();
+        let n_scores_above_thresh = scores_above_thresh.len();
+        if n_scores_above_thresh < 1 {
+            continue;
+        }
+        let curr_max_score = scores_above_thresh
+            .iter()
+            .cloned()
+            .max_by(|&a, &b| a.partial_cmp(b).unwrap())
+            .unwrap();
+
+        if n_scores_above_thresh > max_count || (n_scores_above_thresh == max_count && *curr_max_score > max_score) {
+            max_count = n_scores_above_thresh;
+            max_score = *curr_max_score;
             best_clue = word.to_string();
         }
     }
@@ -106,6 +118,10 @@ pub fn play_agent_game() {
             let guessed_word = vec![guess.to_string(); 1];
             cross_guessed_words(&mut board, &guessed_word);
 
+            if get_remaining_team_words(&board).len() == 0 {
+                println!("You win!");
+                return;
+            }
             if get_remaining_non_team_words(&board).len() == 0 {
                 println!("You lose!");
                 return;
