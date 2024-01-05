@@ -1,9 +1,9 @@
 use regex::Regex;
 
 use crate::common::{
-    Board, compute_words_to_words_similarity, cross_guessed_words,
-    get_remaining_team_words, get_remaining_words, get_team_mask, get_word_board, print_board,
-    print_your_words, read_user_input,
+    compute_words_to_words_similarity, cross_guessed_words, get_remaining_team_words,
+    get_remaining_words, get_team_mask, get_word_board, print_board, print_your_words,
+    read_user_input, WordBoard,
 };
 use crate::constants::BOARD_SIZE;
 
@@ -16,7 +16,7 @@ fn get_n_max_words(words: &Vec<String>, values: &Vec<Vec<f32>>, n: usize) -> Vec
 }
 
 pub fn play_spymaster_game() {
-    let mut board = Board {
+    let mut board = WordBoard {
         words: get_word_board(),
         team_mask: get_team_mask(),
         guessed_mask: vec![vec![false; BOARD_SIZE]; BOARD_SIZE],

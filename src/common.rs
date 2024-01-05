@@ -1,15 +1,16 @@
-use colored::*;
-use pyo3::prelude::*;
-use rand::prelude::SliceRandom;
-use rand::Rng;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
 use std::process;
 
+use colored::*;
+use pyo3::prelude::*;
+use rand::prelude::SliceRandom;
+use rand::Rng;
+
 use crate::constants::{BOARD_SIZE, NUM_WORDS_TO_GUESS, WORDS_CODENAMES_LIST};
 
-pub struct Board {
+pub struct WordBoard {
     pub words: Vec<Vec<String>>,
     pub team_mask: Vec<Vec<bool>>,
     pub guessed_mask: Vec<Vec<bool>>,
@@ -30,7 +31,7 @@ pub fn compute_words_to_words_similarity(
     })
 }
 
-pub fn get_remaining_words(board: &Board) -> Vec<String> {
+pub fn get_remaining_words(board: &WordBoard) -> Vec<String> {
     let mut remaining_words = Vec::new();
     for row in 0..BOARD_SIZE {
         for col in 0..BOARD_SIZE {
@@ -42,7 +43,7 @@ pub fn get_remaining_words(board: &Board) -> Vec<String> {
     return remaining_words;
 }
 
-pub fn get_remaining_team_words(board: &Board) -> Vec<String> {
+pub fn get_remaining_team_words(board: &WordBoard) -> Vec<String> {
     let mut words = Vec::new();
     for row in 0..BOARD_SIZE {
         for col in 0..BOARD_SIZE {
@@ -54,7 +55,7 @@ pub fn get_remaining_team_words(board: &Board) -> Vec<String> {
     return words;
 }
 
-pub fn get_remaining_non_team_words(board: &Board) -> Vec<String> {
+pub fn get_remaining_non_team_words(board: &WordBoard) -> Vec<String> {
     let mut words = Vec::new();
     for row in 0..BOARD_SIZE {
         for col in 0..BOARD_SIZE {
@@ -147,7 +148,7 @@ pub fn read_user_input() -> String {
     return trimmed_input.to_string();
 }
 
-pub fn cross_guessed_words(board: &mut Board, max_words: &Vec<String>) {
+pub fn cross_guessed_words(board: &mut WordBoard, max_words: &Vec<String>) {
     for row in 0..BOARD_SIZE {
         for col in 0..BOARD_SIZE {
             for word in max_words {
@@ -159,7 +160,7 @@ pub fn cross_guessed_words(board: &mut Board, max_words: &Vec<String>) {
     }
 }
 
-pub fn print_board(board: &Board, colors: bool) {
+pub fn print_board(board: &WordBoard, colors: bool) {
     let print_width = get_max_word_length(&board.words) + 2;
     for row in 0..BOARD_SIZE {
         for col in 0..BOARD_SIZE {
@@ -181,7 +182,7 @@ pub fn print_board(board: &Board, colors: bool) {
     }
 }
 
-pub fn print_your_words(board: &Board) {
+pub fn print_your_words(board: &WordBoard) {
     let mut your_words: Vec<String> = Vec::new();
     for row in 0..BOARD_SIZE {
         for col in 0..BOARD_SIZE {

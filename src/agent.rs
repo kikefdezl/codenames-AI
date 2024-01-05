@@ -1,9 +1,9 @@
 use std::io::Write;
 
 use crate::common::{
-    Board, compute_words_to_words_similarity, cross_guessed_words,
-    get_remaining_non_team_words, get_remaining_team_words, get_team_mask, get_word_board, print_board,
-    read_user_input, read_word_file,
+    compute_words_to_words_similarity, cross_guessed_words, get_remaining_non_team_words,
+    get_remaining_team_words, get_team_mask, get_word_board, print_board, read_user_input,
+    read_word_file, WordBoard,
 };
 use crate::constants::{BOARD_SIZE, RISK_THRESHOLD, WORDS_COMMON_LIST};
 
@@ -14,7 +14,7 @@ fn find_max_value(numbers: &Vec<f32>) -> Option<f32> {
     })
 }
 
-fn word_in_board(input_word: &String, board: &Board) -> bool {
+fn word_in_board(input_word: &String, board: &WordBoard) -> bool {
     for row in 0..BOARD_SIZE {
         for col in 0..BOARD_SIZE {
             if input_word.to_lowercase() == board.words[row][col].to_lowercase()
@@ -28,7 +28,7 @@ fn word_in_board(input_word: &String, board: &Board) -> bool {
 }
 
 fn give_clue(
-    board: &Board,
+    board: &WordBoard,
     words_common: &Vec<String>,
     used_clues: &Vec<String>,
 ) -> (String, usize) {
@@ -90,7 +90,7 @@ fn give_clue(
 }
 
 pub fn play_agent_game() {
-    let mut board = Board {
+    let mut board = WordBoard {
         words: get_word_board(),
         team_mask: get_team_mask(),
         guessed_mask: vec![vec![false; BOARD_SIZE]; BOARD_SIZE],

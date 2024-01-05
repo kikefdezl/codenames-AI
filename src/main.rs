@@ -40,7 +40,7 @@ fn game_selection_menu() -> u8 {
 }
 
 fn main() {
-    println!("{:=^70}", "Welcome to codenames!");
+    println!("{:=^70}", " Welcome to codenames! ");
     println!("");
 
     loop {
