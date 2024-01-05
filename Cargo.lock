@@ -46,6 +46,7 @@ version = "0.1.0"
 dependencies = [
  "colored",
  "indicatif",
+ "lazy_static",
  "pyo3",
  "rand",
  "regex",
