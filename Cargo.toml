@@ -6,9 +6,18 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0.79"
+candle-core = "0.3.2"
+candle-examples = "0.3.2"
+candle-nn = "0.3.2"
+candle-transformers = "0.3.2"
+clap = "4.4.13"
 colored = "2.0.0"
-indicatif = "0.17.3"
+hf-hub = "0.3.2"
+intel-mkl-src = { version = "0.8.1", features = ["mkl-static-lp64-iomp"] }
 lazy_static = "1.4.0"
-pyo3 = "0.18.1"
 rand = "0.8.5"
 regex = "1.7.1"
+tokenizers = "0.13.4"
+tracing-chrome = "0.7.1"
+tracing-subscriber = "0.3.18"

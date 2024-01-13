@@ -4,12 +4,12 @@ use crate::agent::play_agent_game;
 use crate::spymaster::play_spymaster_game;
 
 mod agent;
-mod utils;
-mod constants;
-mod spymaster;
-mod word_board;
 mod ai;
 mod clue;
+mod data;
+mod spymaster;
+mod utils;
+mod word_board;
 
 fn game_selection_menu() -> u8 {
     let choice_range = (1, 3);

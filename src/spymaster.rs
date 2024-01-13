@@ -1,7 +1,7 @@
 use lazy_static::lazy_static;
 use regex::Regex;
 
-use crate::ai::prompt_ai_agent;
+use crate::ai::prompting::prompt_ai_agent;
 use crate::clue::Clue;
 use crate::utils::read_user_input;
 use crate::word_board::WordBoard;
@@ -9,7 +9,6 @@ use crate::word_board::WordBoard;
 lazy_static! {
     static ref CLUE_RE: Regex = Regex::new(r"\w \d").unwrap();
 }
-
 
 pub fn play_spymaster_game() {
     let mut board = WordBoard::new();
@@ -63,7 +62,8 @@ fn get_clue_from_user(board: &WordBoard) -> Clue {
         if clue_number > n_team_words {
             println!(
                 "The clue number can't be higher than the number of remaining team \
-                     words ({n_team_words}). \n");
+                     words ({n_team_words}). \n"
+            );
             continue;
         }
         return Clue {

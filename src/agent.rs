@@ -1,4 +1,4 @@
-use crate::ai::prompt_ai_spymaster;
+use crate::ai::prompting::prompt_ai_spymaster;
 use crate::utils::read_user_input;
 use crate::word_board::WordBoard;
 
@@ -13,7 +13,10 @@ pub fn play_agent_game() {
         let remaining_team_words = board.remaining_team_words();
         println!("{} words remaining.", remaining_team_words.len());
 
-        let clue = prompt_ai_spymaster(board.remaining_team_words(), board.remaining_non_team_words());
+        let clue = prompt_ai_spymaster(
+            board.remaining_team_words(),
+            board.remaining_non_team_words(),
+        );
         used_clues.push(clue.word.clone());
 
         let mut remaining_guesses = clue.number;

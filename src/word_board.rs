@@ -2,8 +2,8 @@ use colored::Colorize;
 use rand::prelude::SliceRandom;
 use rand::Rng;
 
-use crate::constants::{BOARD_SIZE, NUM_WORDS_TO_GUESS, WORDS_CODENAMES_LIST};
-use crate::utils::read_word_file;
+use crate::data::constants::{BOARD_SIZE, NUM_WORDS_TO_GUESS};
+use crate::data::wordlist::CODENAME_WORDS;
 
 pub struct WordBoard {
     pub words: Vec<Vec<String>>,
@@ -22,7 +22,7 @@ impl WordBoard {
 
     fn generate_word_board() -> Vec<Vec<String>> {
         // Open the file
-        let lines = read_word_file(WORDS_CODENAMES_LIST);
+        let lines = CODENAME_WORDS.to_vec();
         // Shuffle the vector
         let mut rng = rand::thread_rng();
         let mut words: Vec<String> = lines.iter().map(|s| s.to_string()).collect();
@@ -42,7 +42,6 @@ impl WordBoard {
         return board;
     }
 
-
     fn generate_team_mask() -> Vec<Vec<bool>> {
         let mut count = 0;
         let mut mask = vec![vec![false; BOARD_SIZE]; BOARD_SIZE];
@@ -59,7 +58,6 @@ impl WordBoard {
         }
         return mask;
     }
-
 
     pub fn remaining_words(&self) -> Vec<String> {
         let mut remaining_words = Vec::new();
@@ -84,7 +82,6 @@ impl WordBoard {
         }
         return words;
     }
-
 
     pub fn remaining_non_team_words(&self) -> Vec<String> {
         let mut words = Vec::new();
