@@ -1,6 +1,11 @@
 use std::io::{self};
 use std::process;
 
+pub struct Clue {
+    pub word: String,
+    pub number: usize,
+}
+
 pub fn read_user_input() -> String {
     let mut input = String::new();
     io::stdin()

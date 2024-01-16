@@ -5,7 +5,7 @@ use candle_transformers::models::quantized_mistral::Model as QMistral;
 use hf_hub::api::sync::Api;
 
 use crate::ai::mistral::prompt_mistral;
-use crate::clue::Clue;
+use crate::utils::Clue;
 
 const MODEL_ID: &str = "lmz/candle-mistral";
 const MODEL_FILENAME: &str = "model-q4k.gguf";
