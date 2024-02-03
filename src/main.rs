@@ -4,11 +4,13 @@ use crate::agent::play_agent_game;
 use crate::spymaster::play_spymaster_game;
 
 mod agent;
-mod ai;
+mod models;
 mod data;
 mod spymaster;
 mod utils;
 mod word_board;
+mod prompting;
+mod settings;
 
 const CHOICE_RANGE: (u8, u8) = (1, 3);
 

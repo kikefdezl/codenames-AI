@@ -1,7 +1,7 @@
 use lazy_static::lazy_static;
 use regex::Regex;
 
-use crate::ai::prompting::prompt_ai_agent;
+use crate::prompting::prompt_ai_agent;
 use crate::utils::{Clue, read_user_input};
 use crate::word_board::WordBoard;
 

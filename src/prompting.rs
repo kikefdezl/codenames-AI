@@ -1,40 +1,54 @@
 use candle_core::quantized::gguf_file;
 use candle_core::{Device, Tensor};
+use candle_examples::token_output_stream::TokenOutputStream;
 use candle_transformers::generation::LogitsProcessor;
+use candle_transformers::models::quantized_llama as model;
+use model::ModelWeights;
 use std::io::Write;
 use tokenizers::Tokenizer;
 
-use candle_examples::token_output_stream::TokenOutputStream;
-use candle_transformers::models::quantized_llama as model;
-use model::ModelWeights;
+use crate::models::base::Model;
+use crate::models::mistral::Mistral7BInstruct;
+use crate::settings;
+use crate::utils::Clue;
 
-const MODEL_REPO: &str = "TheBloke/Mistral-7B-Instruct-v0.1-GGUF";
-const MODEL_FILENAME: &str = "mistral-7b-instruct-v0.1.Q4_0.gguf";
-const TOKENIZER_REPO: &str = "mistralai/Mistral-7B-v0.1";
-const TOKENIZER_FILENAME: &str = "tokenizer.json";
-const TEMPERATURE: Option<f64> = Some(0.1);
-const REPEAT_PENALTY: f32 = 1.1;
-const REPEAT_LAST_N: usize = 64;
-const SAMPLE_LEN: usize = 1000;
-const SEED: u64 = 299792458;
-const TOP_P: Option<f64> = None;
+pub fn prompt_ai_agent(words_on_board: Vec<String>, clue: &Clue) -> Vec<String> {
+    let prompt = format!(
+        "In a game of Codenames, the words on the board are:\n\n
 
-fn format_size(size_in_bytes: usize) -> String {
-    if size_in_bytes < 1_000 {
-        format!("{}B", size_in_bytes)
-    } else if size_in_bytes < 1_000_000 {
-        format!("{:.2}KB", size_in_bytes as f64 / 1e3)
-    } else if size_in_bytes < 1_000_000_000 {
-        format!("{:.2}MB", size_in_bytes as f64 / 1e6)
-    } else {
-        format!("{:.2}GB", size_in_bytes as f64 / 1e9)
+        {}\n\n
+
+        Spymaster clue word: {}\n\
+        Spymaster clue number: {}\n\n
+
+        Agent guesses: ",
+        words_on_board.join(" "),
+        clue.word,
+        clue.number
+    );
+    prompt_model(prompt.as_str()).expect("Failed to run pipeline!");
+    words_on_board.into_iter().take(clue.number).collect()
+}
+
+pub fn prompt_ai_spymaster(team_words: Vec<String>, non_team_words: Vec<String>) -> Clue {
+    Clue {
+        word: String::from("hello"),
+        number: 1,
     }
 }
 
-pub fn prompt_mistral(prompt: &str) -> anyhow::Result<()> {
+fn select_model(model: &str) -> Box<dyn Model> {
+    match model {
+        "Mistral7bInstruct" => return Box::new(Mistral7BInstruct),
+        _ => panic!("Invalid model selected!"),
+    }
+}
+
+pub fn prompt_model(prompt: &str) -> anyhow::Result<()> {
     let api = hf_hub::api::sync::Api::new()?;
-    let api = api.model(MODEL_REPO.to_string());
-    let model_path = api.get(MODEL_FILENAME)?;
+    let model_spec = select_model("Mistral7bInstruct");
+    let api = api.model(model_spec.model_repo());
+    let model_path = api.get(&model_spec.model_filename())?;
     let mut file = std::fs::File::open(&model_path)?;
 
     let model = gguf_file::Content::read(&mut file).map_err(|e| e.with_path(model_path))?;
@@ -44,21 +58,15 @@ pub fn prompt_mistral(prompt: &str) -> anyhow::Result<()> {
         total_size_in_bytes +=
             elem_count * tensor.ggml_dtype.type_size() / tensor.ggml_dtype.blck_size();
     }
-    println!(
-        "loaded {:?} tensors ({})",
-        model.tensor_infos.len(),
-        &format_size(total_size_in_bytes),
-    );
     let mut model = ModelWeights::from_gguf(model, &mut file)?;
     println!("Model built!");
 
     let api = hf_hub::api::sync::Api::new()?;
-    let api = api.model(TOKENIZER_REPO.to_string());
-    let tokenizer_path = api.get(TOKENIZER_FILENAME)?;
+    let api = api.model(model_spec.tokenizer_repo());
+    let tokenizer_path = api.get(&model_spec.tokenizer_filename())?;
     let tokenizer = Tokenizer::from_file(tokenizer_path).map_err(anyhow::Error::msg)?;
 
     let mut tos = TokenOutputStream::new(tokenizer);
-    let prompt = format!("<s>[INST] {} [/INST]", prompt).to_string();
 
     let pre_prompt_tokens = vec![];
 
@@ -69,7 +77,7 @@ pub fn prompt_mistral(prompt: &str) -> anyhow::Result<()> {
             .encode(prompt, true)
             .map_err(anyhow::Error::msg)?;
         let prompt_tokens = [&pre_prompt_tokens, tokens.get_ids()].concat();
-        let to_sample = SAMPLE_LEN.saturating_sub(1);
+        let to_sample = settings::SAMPLE_LEN.saturating_sub(1);
         let prompt_tokens = if prompt_tokens.len() + to_sample > model::MAX_SEQ_LEN - 10 {
             let to_remove = prompt_tokens.len() + to_sample + 10 - model::MAX_SEQ_LEN;
             prompt_tokens[prompt_tokens.len().saturating_sub(to_remove)..].to_vec()
@@ -78,7 +86,8 @@ pub fn prompt_mistral(prompt: &str) -> anyhow::Result<()> {
         };
 
         let mut all_tokens = vec![];
-        let mut logits_processor = LogitsProcessor::new(SEED, TEMPERATURE, TOP_P);
+        let mut logits_processor =
+            LogitsProcessor::new(settings::SEED, settings::TEMPERATURE, settings::TOP_P);
 
         let mut next_token = {
             let input = Tensor::new(prompt_tokens.as_slice(), &Device::Cpu)?.unsqueeze(0)?;
@@ -99,13 +108,13 @@ pub fn prompt_mistral(prompt: &str) -> anyhow::Result<()> {
             let input = Tensor::new(&[next_token], &Device::Cpu)?.unsqueeze(0)?;
             let logits = model.forward(&input, prompt_tokens.len() + index)?;
             let logits = logits.squeeze(0)?;
-            let logits = if REPEAT_PENALTY == 1. {
+            let logits = if settings::REPEAT_PENALTY == 1. {
                 logits
             } else {
-                let start_at = all_tokens.len().saturating_sub(REPEAT_LAST_N);
+                let start_at = all_tokens.len().saturating_sub(settings::REPEAT_LAST_N);
                 candle_transformers::utils::apply_repeat_penalty(
                     &logits,
-                    REPEAT_PENALTY,
+                    settings::REPEAT_PENALTY,
                     &all_tokens[start_at..],
                 )?
             };
